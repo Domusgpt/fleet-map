@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fleet Map — Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500&family=Josefin+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+  <!-- ================================================================
+       AUTH SCREEN
+       ================================================================ -->
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <svg viewBox="0 0 40 40" class="auth-icon">
+          <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+          <path d="M20 4 L20 36 M4 20 L36 20" stroke="currentColor" stroke-width="0.8" opacity="0.2"/>
+          <polygon points="20,6 17,14 23,14" fill="currentColor" opacity="0.6"/>
+          <text x="20" y="22" text-anchor="middle" font-size="5" fill="currentColor" opacity="0.4">N</text>
+        </svg>
+        <h1>Fleet Map</h1>
+        <p class="auth-subtitle">Fleet Management Dashboard</p>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="captain@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+        <p class="auth-switch">No account? <a href="#" id="showRegister">Create one</a></p>
+      </form>
+
+      <form id="registerForm" class="auth-form" style="display:none">
+        <div class="form-group">
+          <label for="regName">Fleet Name</label>
+          <input type="text" id="regName" placeholder="Viking Village Fleet" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" placeholder="captain@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <input type="password" id="regPassword" placeholder="Create password" minlength="8" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+        <p class="auth-switch">Already have an account? <a href="#" id="showLogin">Sign in</a></p>
+      </form>
+
+      <div class="auth-demo">
+        <button id="demoLogin" class="btn btn-outline btn-full">Try Demo (No Account)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       DASHBOARD
+       ================================================================ -->
+  <div id="dashboard" class="dashboard" style="display:none">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h2 class="sidebar-logo">Fleet Map</h2>
+        <span class="sidebar-plan" id="planBadge">Demo</span>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li class="nav-item active" data-panel="overview">
+          <span class="nav-icon">&#9783;</span> Overview
+        </li>
+        <li class="nav-item" data-panel="vessels">
+          <span class="nav-icon">&#9978;</span> Vessels
+        </li>
+        <li class="nav-item" data-panel="theme">
+          <span class="nav-icon">&#9733;</span> Theme
+        </li>
+        <li class="nav-item" data-panel="weather">
+          <span class="nav-icon">&#9729;</span> Weather
+        </li>
+        <li class="nav-item" data-panel="markers">
+          <span class="nav-icon">&#9872;</span> Markers
+        </li>
+        <li class="nav-item" data-panel="settings">
+          <span class="nav-icon">&#9881;</span> Settings
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="btn btn-ghost btn-full">Sign Out</button>
+      </div>
+    </nav>
+
+    <!-- Main content area -->
+    <main class="main-content">
+
+      <!-- Top bar -->
+      <header class="topbar">
+        <h1 id="fleetTitle" class="topbar-title">Fleet Dashboard</h1>
+        <div class="topbar-actions">
+          <span id="connectionStatus" class="status-dot status-connected"></span>
+          <span id="userEmail" class="topbar-email">demo@fleetmap.io</span>
+        </div>
+      </header>
+
+      <!-- ============================================================
+           PANEL: Overview
+           ============================================================ -->
+      <section id="panel-overview" class="panel">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Total Vessels</div>
+          </div>
+          <div class="stat-card stat-fishing">
+            <div class="stat-value" id="statFishing">0</div>
+            <div class="stat-label">Fishing</div>
+          </div>
+          <div class="stat-card stat-transit">
+            <div class="stat-value" id="statTransit">0</div>
+            <div class="stat-label">In Transit</div>
+          </div>
+          <div class="stat-card stat-port">
+            <div class="stat-value" id="statPort">0</div>
+            <div class="stat-label">In Port</div>
+          </div>
+        </div>
+
+        <!-- Live map preview -->
+        <div class="map-preview">
+          <div id="fleetMap" class="fleet-map">
+            <div class="fleet-map-area">
+              <canvas id="fleetCanvasDepth"></canvas>
+              <canvas id="fleetCanvasCurrents"></canvas>
+              <canvas id="fleetCanvasCoast"></canvas>
+              <canvas id="fleetCanvasMarkers"></canvas>
+              <canvas id="fleetCanvasWeather"></canvas>
+              <canvas id="fleetCanvasVessels"></canvas>
+              <canvas id="fleetCanvasAtmo"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PANEL: Vessels
+           ============================================================ -->
+      <section id="panel-vessels" class="panel" style="display:none">
+        <div class="panel-header">
+          <h2>Vessel Management</h2>
+          <button id="addVesselBtn" class="btn btn-primary">+ Add Vessel</button>
+        </div>
+
+        <table class="data-table" id="vesselTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Position</th>
+              <th>Speed</th>
+              <th>Catch</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="vesselTableBody">
+          </tbody>
+        </table>
+
+        <!-- Add/Edit Vessel Modal -->
+        <div id="vesselModal" class="modal" style="display:none">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="vesselModalTitle">Add Vessel</h3>
+              <button class="modal-close" id="vesselModalClose">&times;</button>
+            </div>
+            <form id="vesselForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Vessel Name</label>
+                  <input type="text" id="vfName" placeholder="F/V Karen L" required>
+                </div>
+                <div class="form-group">
+                  <label>MMSI</label>
+                  <input type="text" id="vfMmsi" placeholder="338123456">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Type</label>
+                  <select id="vfType">
+                    <option>Trawler</option>
+                    <option>Longliner</option>
+                    <option>Scalloper</option>
+                    <option>Gillnetter</option>
+                    <option>Lobster</option>
+                    <option>Cargo</option>
+                    <option>Sailboat</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Status</label>
+                  <select id="vfStatus">
+                    <option>In Port</option>
+                    <option>Fishing</option>
+                    <option>In Transit</option>
+                    <option>Returning</option>
+                    <option>Scalloping</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Latitude</label>
+                  <input type="number" id="vfLat" step="0.001" placeholder="39.76">
+                </div>
+                <div class="form-group">
+                  <label>Longitude</label>
+                  <input type="number" id="vfLon" step="0.001" placeholder="-74.11">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Heading (°)</label>
+                  <input type="number" id="vfHeading" min="0" max="360" placeholder="135">
+                </div>
+                <div class="form-group">
+                  <label>Speed (kt)</label>
+                  <input type="number" id="vfSpeed" step="0.1" placeholder="7.2">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Current Catch</label>
+                <input type="text" id="vfCatch" placeholder="Sea Scallops">
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-ghost" id="vesselFormCancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Vessel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PANEL: Theme
+           ============================================================ -->
+      <section id="panel-theme" class="panel" style="display:none">
+        <div class="panel-header">
+          <h2>Theme & Appearance</h2>
+        </div>
+
+        <div class="theme-grid" id="themeGrid">
+          <div class="theme-card active" data-theme="classic-nautical">
+            <div class="theme-preview" style="background:linear-gradient(135deg, #040A10, #0D2240)">
+              <span class="theme-accent" style="background:#C9A84C"></span>
+            </div>
+            <div class="theme-info">
+              <strong>Classic Nautical</strong>
+              <span>Gold on deep ocean blue</span>
+            </div>
+          </div>
+          <div class="theme-card" data-theme="treasure-map">
+            <div class="theme-preview" style="background:linear-gradient(135deg, #B49B6E, #A08C64)">
+              <span class="theme-accent" style="background:#8C5A1E"></span>
+            </div>
+            <div class="theme-info">
+              <strong>Treasure Map</strong>
+              <span>Parchment, hand-drawn ink</span>
+            </div>
+          </div>
+          <div class="theme-card" data-theme="tactical">
+            <div class="theme-preview" style="background:linear-gradient(135deg, #000400, #001A06)">
+              <span class="theme-accent" style="background:#00FF41"></span>
+            </div>
+            <div class="theme-info">
+              <strong>Tactical</strong>
+              <span>CRT terminal, mil-spec</span>
+            </div>
+          </div>
+          <div class="theme-card" data-theme="minimal">
+            <div class="theme-preview" style="background:linear-gradient(135deg, #F5F7FA, #E4E8EE)">
+              <span class="theme-accent" style="background:#3778C8"></span>
+            </div>
+            <div class="theme-info">
+              <strong>Minimal</strong>
+              <span>Clean, modern, flat</span>
+            </div>
+          </div>
+          <div class="theme-card" data-theme="tropical">
+            <div class="theme-preview" style="background:linear-gradient(135deg, #002D5A, #0050A0)">
+              <span class="theme-accent" style="background:#FF8C32"></span>
+            </div>
+            <div class="theme-info">
+              <strong>Tropical</strong>
+              <span>Sunset, coral, beach vibes</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Branding</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fleet Title</label>
+              <input type="text" id="brandTitle" placeholder="My Fleet">
+            </div>
+            <div class="form-group">
+              <label>Subtitle</label>
+              <input type="text" id="brandSubtitle" placeholder="Est. 2024">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PANEL: Weather
+           ============================================================ -->
+      <section id="panel-weather" class="panel" style="display:none">
+        <div class="panel-header">
+          <h2>Weather Integration</h2>
+          <label class="toggle-label">
+            <input type="checkbox" id="weatherEnabled"> Enable NOAA Weather
+          </label>
+        </div>
+
+        <div class="form-section">
+          <h3>Forecast Points</h3>
+          <p class="form-help">Add lat/lon points where you want weather data displayed on the map. Data comes from NOAA (free, no API key).</p>
+          <div id="weatherPointsList" class="weather-points-list"></div>
+          <button id="addWeatherPoint" class="btn btn-outline">+ Add Forecast Point</button>
+        </div>
+
+        <div class="form-section">
+          <h3>Alert Zone</h3>
+          <div class="form-group">
+            <label>NOAA Marine Zone Code</label>
+            <input type="text" id="alertZone" placeholder="ANZ335">
+            <span class="form-help">Find your zone at <em>weather.gov/marine</em></span>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Display Options</h3>
+          <label class="toggle-label"><input type="checkbox" id="showWind" checked> Wind barbs</label>
+          <label class="toggle-label"><input type="checkbox" id="showWaves" checked> Wave height</label>
+          <label class="toggle-label"><input type="checkbox" id="showTemp"> Temperature</label>
+          <label class="toggle-label"><input type="checkbox" id="showWarnings" checked> Warning banners</label>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PANEL: Markers
+           ============================================================ -->
+      <section id="panel-markers" class="panel" style="display:none">
+        <div class="panel-header">
+          <h2>Channel Markers & Nav Aids</h2>
+          <button id="addMarkerBtn" class="btn btn-primary">+ Add Marker</button>
+        </div>
+
+        <table class="data-table" id="markerTable">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Position</th>
+              <th>Light</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="markerTableBody">
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============================================================
+           PANEL: Settings
+           ============================================================ -->
+      <section id="panel-settings" class="panel" style="display:none">
+        <div class="panel-header">
+          <h2>Settings</h2>
+        </div>
+
+        <div class="form-section">
+          <h3>Map Region</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>North Lat</label>
+              <input type="number" id="boundsN" step="0.1">
+            </div>
+            <div class="form-group">
+              <label>South Lat</label>
+              <input type="number" id="boundsS" step="0.1">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>West Lon</label>
+              <input type="number" id="boundsW" step="0.1">
+            </div>
+            <div class="form-group">
+              <label>East Lon</label>
+              <input type="number" id="boundsE" step="0.1">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>AIS Integration</h3>
+          <div class="form-group">
+            <label>AIS Endpoint URL</label>
+            <input type="url" id="aisEndpoint" placeholder="https://your-ais-provider.com/api/vessels">
+          </div>
+          <div class="form-group">
+            <label>Refresh Interval (seconds)</label>
+            <input type="number" id="aisRefresh" value="60" min="10" max="300">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Performance</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Particles (Desktop)</label>
+              <input type="number" id="particleCount" value="250" min="50" max="500">
+            </div>
+            <div class="form-group">
+              <label>Particles (Mobile)</label>
+              <input type="number" id="particleMobile" value="100" min="25" max="250">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Account</h3>
+          <div class="settings-info">
+            <p><strong>Plan:</strong> <span id="settingsPlan">Demo</span></p>
+            <p><strong>Vessels:</strong> <span id="settingsVesselCount">0</span> / <span id="settingsVesselLimit">10</span></p>
+          </div>
+          <button class="btn btn-primary" id="upgradePlanBtn">Upgrade Plan</button>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" id="saveSettingsBtn">Save All Settings</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
