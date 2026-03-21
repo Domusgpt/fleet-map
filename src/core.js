@@ -17,11 +17,16 @@ var LAYER_IDS = {
   depth:      'fleetCanvasDepth',
   currents:   'fleetCanvasCurrents',
   coast:      'fleetCanvasCoast',
+  markers:    'fleetCanvasMarkers',
+  weather:    'fleetCanvasWeather',
   vessels:    'fleetCanvasVessels',
   atmosphere: 'fleetCanvasAtmo',
 };
 
-var LAYER_NAMES = ['depth', 'currents', 'coast', 'vessels', 'atmosphere'];
+var LAYER_NAMES = ['depth', 'currents', 'coast', 'markers', 'weather', 'vessels', 'atmosphere'];
+
+// Layers that are optional — don't throw if canvas is missing
+var OPTIONAL_LAYERS = { markers: true, weather: true };
 
 export class CanvasManager {
   /**
@@ -51,7 +56,20 @@ export class CanvasManager {
         canvas = container.querySelector('[data-layer="' + name + '"]');
       }
       if (!canvas) {
-        throw new Error('FleetMap: missing canvas #' + canvasId);
+        if (OPTIONAL_LAYERS[name]) {
+          // Optional layers: create canvas dynamically if not in DOM
+          canvas = document.createElement('canvas');
+          canvas.id = canvasId;
+          canvas.style.position = 'absolute';
+          canvas.style.top = '0';
+          canvas.style.left = '0';
+          canvas.style.pointerEvents = 'none';
+          // Insert before the first existing canvas to maintain z-order
+          var mapArea = container.querySelector('.fleet-map-area') || container;
+          mapArea.appendChild(canvas);
+        } else {
+          throw new Error('FleetMap: missing canvas #' + canvasId);
+        }
       }
       this.layers[name] = {
         canvas: canvas,

@@ -44,8 +44,9 @@ function statusColor(colors, status, alpha) {
  * @param {object}   config  — merged FleetMap config
  * @param {number}   t       — animation time counter
  * @param {Array}    vessels — array of vessel objects
+ * @param {object}   [renderer] — AssetRenderer instance (optional)
  */
-export function drawVessels(ctx, w, h, projFn, config, t, vessels) {
+export function drawVessels(ctx, w, h, projFn, config, t, vessels, renderer) {
   var colors = config.colors;
   var fonts  = config.fonts;
 
@@ -118,17 +119,6 @@ export function drawVessels(ctx, w, h, projFn, config, t, vessels) {
     var heading = v.heading || 0;
     var rad     = heading * Math.PI / 180;
 
-    ctx.save();
-    ctx.translate(sp.x, sp.y);
-    ctx.rotate(rad);
-
-    // Triangle: tip at top, base at bottom
-    ctx.beginPath();
-    ctx.moveTo(0, -5);
-    ctx.lineTo(-3, 4);
-    ctx.lineTo(3, 4);
-    ctx.closePath();
-
     // Fill based on status
     var fillAlpha;
     switch (v.status) {
@@ -136,15 +126,39 @@ export function drawVessels(ctx, w, h, projFn, config, t, vessels) {
       case 'In Port':   fillAlpha = 0.7; break;
       default:          fillAlpha = 0.7; break;
     }
-    ctx.fillStyle = statusColor(colors, v.status, fillAlpha);
-    ctx.fill();
+    var vesselColor = statusColor(colors, v.status, fillAlpha);
 
-    // Thin white stroke
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth   = 0.5;
-    ctx.stroke();
+    // Use asset renderer if available, otherwise fall back to triangle
+    if (renderer) {
+      renderer.drawVessel(ctx, v, sp, {
+        t: t,
+        colors: colors,
+        fonts: fonts,
+        w: w,
+        index: i,
+      });
+    } else {
+      ctx.save();
+      ctx.translate(sp.x, sp.y);
+      ctx.rotate(rad);
 
-    ctx.restore();
+      // Triangle: tip at top, base at bottom
+      ctx.beginPath();
+      ctx.moveTo(0, -5);
+      ctx.lineTo(-3, 4);
+      ctx.lineTo(3, 4);
+      ctx.closePath();
+
+      ctx.fillStyle = vesselColor;
+      ctx.fill();
+
+      // Thin white stroke
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth   = 0.5;
+      ctx.stroke();
+
+      ctx.restore();
+    }
 
     // ------------------------------------------------------------------
     // 5. Ping rings

@@ -62,10 +62,45 @@ export var DEFAULTS = {
   // Built-in: 'south-atlantic'. Or provide custom array.
   currentData: 'south-atlantic',
 
+  // Theme — which visual theme pack to use
+  // Built-in: 'classic-nautical', 'treasure-map', 'tactical', 'minimal', 'tropical'
+  theme: 'classic-nautical',
+
+  // Asset rendering options
+  assets: {
+    vesselStyle: 'auto',       // 'auto' (theme default), 'topDown', 'profile', 'icon', 'triangle'
+    showFacilities: true,      // show port facility icons
+    showStatusBadges: false,   // show status pills on vessels
+    showETA: false,            // show ETA to port
+  },
+
+  // Weather overlay (NOAA integration)
+  weather: {
+    enabled: false,            // set true to activate weather layer
+    refreshMs: 900000,         // 15 minutes
+    points: [],                // [{ lat, lon, name? }] — forecast grid points
+    alertZone: null,           // NOAA marine zone code (e.g. 'ANZ335')
+    showWind: true,
+    showWaves: true,
+    showTemp: false,
+    showWarnings: true,
+  },
+
+  // Channel markers and navigation aids
+  // Each marker: { type, lat, lon, name?, light? }
+  markers: [],
+
+  // Vessel communications (future)
+  comms: {
+    endpoint: null,            // REST API for captain's log / messaging
+    refreshMs: 30000,
+  },
+
   // Callbacks
   onVesselHover: null,   // function(vessel, screenPos) {}
   onVesselClick: null,   // function(vessel) {}
   onAISUpdate: null,     // function(vessels) {}
+  onWeatherUpdate: null, // function(weatherData) {}
 };
 
 /**
@@ -82,7 +117,7 @@ export function mergeConfig(userConfig) {
   if (!userConfig) return cfg;
   for (key in userConfig) {
     if (!userConfig.hasOwnProperty(key)) continue;
-    if (key === 'colors' || key === 'fonts') {
+    if (key === 'colors' || key === 'fonts' || key === 'assets' || key === 'weather' || key === 'comms') {
       cfg[key] = {};
       var def = DEFAULTS[key];
       var usr = userConfig[key] || {};

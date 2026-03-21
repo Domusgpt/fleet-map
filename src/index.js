@@ -49,11 +49,16 @@ import { drawCurrents, initParticles } from './layers/currents.js';
 import { drawCoast } from './layers/coast.js';
 import { drawVessels } from './layers/vessels.js';
 import { drawAtmosphere } from './layers/atmosphere.js';
+import { drawWeather } from './layers/weather.js';
+import { drawMarkers } from './layers/markers.js';
 import { buildRoster } from './roster.js';
 import { setupInteraction } from './interaction.js';
 import { AISClient } from './ais.js';
 import { BRAZIL_COAST } from './data/brazil-coast.js';
 import { SA_CURRENTS } from './data/currents-sa.js';
+import { createDefaultRegistry } from './assets/registry.js';
+import { AssetRenderer } from './assets/renderer.js';
+import { NOAAClient } from './services/noaa.js';
 
 /**
  * Deep-copy an array of plain objects (one level deep).
@@ -147,6 +152,21 @@ export class FleetMap {
       this.aisClient = new AISClient(this.config.aisEndpoint, this.config.aisRefreshMs);
     }
 
+    // Asset system — registry, theme, renderer
+    this.registry = createDefaultRegistry();
+    this.theme = this.registry.getTheme(this.config.theme || 'classic-nautical') || this.registry.getTheme('classic-nautical');
+    this.renderer = new AssetRenderer(this.registry, this.theme, this.cm.w);
+
+    // Markers data
+    this.markers = cloneArray(this.config.markers);
+
+    // NOAA weather client
+    this.noaaClient = null;
+    this.weatherData = null;
+    if (this.config.weather && this.config.weather.enabled) {
+      this.noaaClient = new NOAAClient(this.config.weather);
+    }
+
     // State
     this.started = false;
     this._resizeBound = this.resize.bind(this);
@@ -176,6 +196,18 @@ export class FleetMap {
       });
     }
 
+    // Start NOAA weather polling if configured
+    if (this.noaaClient) {
+      var self3 = this;
+      this.noaaClient.start(function (weatherData) {
+        self3.weatherData = weatherData;
+        self3.cm.markDirty('weather');
+        if (self3.config && typeof self3.config.onWeatherUpdate === 'function') {
+          self3.config.onWeatherUpdate(weatherData);
+        }
+      });
+    }
+
     // Listen for window resize
     window.addEventListener('resize', this._resizeBound);
   }
@@ -191,6 +223,9 @@ export class FleetMap {
 
     if (this.aisClient) {
       this.aisClient.stop();
+    }
+    if (this.noaaClient) {
+      this.noaaClient.stop();
     }
   }
 
@@ -216,13 +251,22 @@ export class FleetMap {
       this.aisClient.stop();
       this.aisClient = null;
     }
+    if (this.noaaClient) {
+      this.noaaClient.stop();
+      this.noaaClient = null;
+    }
 
     this.vessels = null;
     this.ports = null;
     this.routes = null;
+    this.markers = null;
     this.coastData = null;
     this.currentData = null;
     this.particles = null;
+    this.weatherData = null;
+    this.registry = null;
+    this.renderer = null;
+    this.theme = null;
     this.rosterEl = null;
     this.container = null;
     this.config = null;
@@ -252,6 +296,69 @@ export class FleetMap {
   }
 
   /**
+   * Update weather data manually (alternative to NOAA auto-polling).
+   * @param {object} weatherData — { stations: [...], warnings: [...] }
+   */
+  updateWeather(weatherData) {
+    this.weatherData = weatherData;
+    if (this.cm) this.cm.markDirty('weather');
+  }
+
+  /**
+   * Update markers data.
+   * @param {Array} markers — array of marker objects
+   */
+  updateMarkers(markers) {
+    this.markers = cloneArray(markers);
+    if (this.cm) this.cm.markDirty('markers');
+  }
+
+  /**
+   * Switch theme at runtime.
+   * @param {string} themeId — theme identifier
+   */
+  setTheme(themeId) {
+    var theme = this.registry.getTheme(themeId);
+    if (!theme) return;
+    this.theme = theme;
+    this.renderer = new AssetRenderer(this.registry, theme, this.cm ? this.cm.w : 1200);
+
+    // Apply theme colors to config for layer compatibility
+    if (theme.colors) {
+      for (var k in theme.colors) {
+        if (theme.colors.hasOwnProperty(k)) {
+          this.config.colors[k] = theme.colors[k];
+        }
+      }
+    }
+    if (theme.fonts) {
+      for (var f in theme.fonts) {
+        if (theme.fonts.hasOwnProperty(f)) {
+          this.config.fonts[f] = theme.fonts[f];
+        }
+      }
+    }
+
+    // Redraw everything
+    if (this.cm) {
+      this.cm.markDirty('depth');
+      this.cm.markDirty('coast');
+      this.cm.markDirty('markers');
+      this.cm.markDirty('weather');
+      this.cm.markDirty('atmosphere');
+    }
+    this._drawStatic();
+  }
+
+  /**
+   * Get the asset registry for custom symbol/theme registration.
+   * @returns {import('./assets/registry.js').AssetRegistry}
+   */
+  getRegistry() {
+    return this.registry;
+  }
+
+  /**
    * Handle container resize.
    */
   resize() {
@@ -263,8 +370,15 @@ export class FleetMap {
     this.cm.markDirty('depth');
     this.cm.markDirty('currents');
     this.cm.markDirty('coast');
+    this.cm.markDirty('markers');
+    this.cm.markDirty('weather');
     this.cm.markDirty('vessels');
     this.cm.markDirty('atmosphere');
+
+    // Update renderer canvas width
+    if (this.renderer) {
+      this.renderer.setWidth(this.cm.w);
+    }
 
     // Redraw static layers
     this._drawStatic();
@@ -293,6 +407,22 @@ export class FleetMap {
       coastLayer.dirty = false;
     }
 
+    // Markers layer (semi-static, redraws when dirty or has animated elements)
+    var markersLayer = cm.getLayer('markers');
+    if (markersLayer && markersLayer.dirty) {
+      var projFnM = cm.proj.bind(cm);
+      drawMarkers(markersLayer.ctx, cm.w, cm.h, projFnM, this.config, t, this.markers, this.renderer);
+      markersLayer.dirty = false;
+    }
+
+    // Weather layer (semi-static, redraws when dirty)
+    var weatherLayer = cm.getLayer('weather');
+    if (weatherLayer && weatherLayer.dirty) {
+      var projFnW = cm.proj.bind(cm);
+      drawWeather(weatherLayer.ctx, cm.w, cm.h, projFnW, this.config, t, this.weatherData, this.renderer);
+      weatherLayer.dirty = false;
+    }
+
     var atmoLayer = cm.getLayer('atmosphere');
     if (atmoLayer.dirty) {
       drawAtmosphere(atmoLayer.ctx, cm, this.config);
@@ -305,7 +435,7 @@ export class FleetMap {
     drawCurrents(currLayer.ctx, cm, this.particles, this.currentData, this.config, t);
 
     var vesselLayer = cm.getLayer('vessels');
-    drawVessels(vesselLayer.ctx, cm, this.vessels, this.config, t);
+    drawVessels(vesselLayer.ctx, cm, this.vessels, this.config, t, this.renderer);
 
     // --- Simulated vessel drift (when no AIS endpoint) ---
 
@@ -332,6 +462,8 @@ export class FleetMap {
     if (!this.cm) return;
     this.cm.markDirty('depth');
     this.cm.markDirty('coast');
+    this.cm.markDirty('markers');
+    this.cm.markDirty('weather');
     this.cm.markDirty('atmosphere');
   }
 
