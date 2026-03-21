@@ -96,6 +96,13 @@ export class CanvasManager {
     var w = rect.width;
     var h = rect.height;
 
+    // If container has no dimensions yet (layout pending), retry shortly
+    if (w < 1 || h < 1) {
+      var self = this;
+      setTimeout(function () { self.resize(); }, 50);
+      return;
+    }
+
     this.w = w;
     this.h = h;
     this.dpr = dpr;

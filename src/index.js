@@ -400,6 +400,8 @@ export class FleetMap {
   _draw(t) {
     var cm = this.cm;
     if (!cm) return;
+    // Skip frame if canvas has no dimensions yet (layout pending)
+    if (cm.w < 1 || cm.h < 1) return;
 
     try {
 
