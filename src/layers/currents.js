@@ -103,7 +103,31 @@ function segmentInfo(px, py, ax, ay, bx, by) {
  * @param {Array}    currentData — [{ points, strength, width }, ...]
  * @param {object}   bounds      — { latN, latS, lonW, lonE }
  */
-export function drawCurrents(ctx, w, h, projFn, config, t, particles, currentData, bounds) {
+export function drawCurrents(ctx, wOrCm, hOrParticles, projFnOrCurrentData, configOrCfg, tOrT, particlesArg, currentDataArg, boundsArg) {
+  var w, h, projFn, config, t, particles, currentData, bounds;
+
+  if (typeof wOrCm === 'object' && wOrCm.w !== undefined) {
+    // CanvasManager style: (ctx, cm, particles, currentData, config, t)
+    w = wOrCm.w;
+    h = wOrCm.h;
+    projFn = wOrCm.proj.bind(wOrCm);
+    particles = hOrParticles;
+    currentData = projFnOrCurrentData;
+    config = configOrCfg;
+    t = tOrT;
+    bounds = config.bounds;
+  } else {
+    // Explicit style: (ctx, w, h, projFn, config, t, particles, currentData, bounds)
+    w = wOrCm;
+    h = hOrParticles;
+    projFn = projFnOrCurrentData;
+    config = configOrCfg;
+    t = tOrT;
+    particles = particlesArg;
+    currentData = currentDataArg;
+    bounds = boundsArg;
+  }
+
   ctx.clearRect(0, 0, w, h);
 
   var color = config.colors.blade;
