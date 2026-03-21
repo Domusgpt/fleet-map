@@ -259,7 +259,7 @@ function drawLighthouseCompass(ctx, w, h, projFn, config, t) {
   ctx.stroke();
 
   // Lantern room (top)
-  var lanternY = -lhH + bandH - 4;
+  var lanternY = -lhH + 4;
   ctx.beginPath();
   ctx.rect(-topW - 1, lanternY - 6, (topW + 1) * 2, 6);
   ctx.fillStyle = 'rgba(255,255,255,0.25)';
