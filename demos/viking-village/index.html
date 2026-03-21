@@ -5,214 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Viking Village Fleet Map — Barnegat Light, NJ</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Josefin+Sans:wght@200;300;400&display=swap" rel="stylesheet">
 
-  <!-- Fleet Map Styles -->
   <link rel="stylesheet" href="styles.css">
-
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html {
-      height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-
-    body {
-      min-height: 100%;
-      background: #0A1628;
-      color: #D4B896;
-      font-family: 'Josefin Sans', sans-serif;
-    }
-
-    /* ── Compact hero bar ── */
-    .vv-hero {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
-      padding: 1.25rem 2rem;
-      position: relative;
-      background: rgba(10, 22, 40, 0.5);
-      border-bottom: 1px solid rgba(196, 30, 58, 0.06);
-    }
-
-    .vv-hero-brand {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .vv-hero h1 {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: clamp(1.4rem, 3.5vw, 2.4rem);
-      font-weight: 400;
-      color: #D4B896;
-      letter-spacing: 0.06em;
-      line-height: 1.1;
-    }
-
-    .vv-hero .subtitle {
-      font-family: 'Josefin Sans', sans-serif;
-      font-weight: 200;
-      font-size: 0.62rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: #3BA99C;
-      opacity: 0.6;
-      margin-top: 0.2rem;
-    }
-
-    .vv-hero .est {
-      font-family: 'Josefin Sans', sans-serif;
-      font-weight: 300;
-      font-size: 0.5rem;
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-      color: #D4B896;
-      opacity: 0.25;
-      margin-top: 0.15rem;
-    }
-
-    /* Decorative compass-like side markers */
-    .vv-hero-rule {
-      width: 60px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(196, 30, 58, 0.25), transparent);
-    }
-
-    .vv-hero-rule.left { transform: scaleX(-1); }
-
-    /* ── Footer ── */
-    .vv-footer {
-      text-align: center;
-      padding: 1rem 1rem;
-      font-weight: 300;
-      font-size: 0.5rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: #D4B896;
-      opacity: 0.2;
-      background: rgba(10, 22, 40, 0.3);
-      border-top: 1px solid rgba(196, 30, 58, 0.04);
-    }
-
-    .vv-footer a {
-      color: #3BA99C;
-      text-decoration: none;
-    }
-
-    /* ── Mobile hero ── */
-    @media (max-width: 768px) {
-      .vv-hero {
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-      }
-      .vv-hero-rule { display: none; }
-      .vv-hero h1 { font-size: 1.3rem; }
-    }
-  </style>
 </head>
 <body>
 
-  <!-- Hero — compact bar -->
-  <header class="vv-hero">
-    <div class="vv-hero-rule left"></div>
-    <div class="vv-hero-brand">
-      <h1>Viking Village</h1>
-      <div class="subtitle">Commercial Fishing Fleet</div>
-      <div class="est">Est. 1927 &middot; Barnegat Light, NJ</div>
-    </div>
-    <div class="vv-hero-rule"></div>
-  </header>
+  <!-- ── Fullscreen app shell ── -->
+  <div class="app">
 
-  <!-- Fleet Map Section -->
-  <section class="fleet-section" id="fleet">
-    <div class="fleet-map-wrap">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span class="topbar-title">Viking Village</span>
+        <span class="topbar-sub">Barnegat Light, NJ</span>
+      </div>
+      <div class="topbar-stats" id="topbarStats">
+        <div class="ts"><span class="ts-n fleet-stat-0">22</span><span class="ts-l">vessels</span></div>
+        <div class="ts"><span class="ts-n fleet-stat-1">17</span><span class="ts-l">fishing</span></div>
+        <div class="ts"><span class="ts-n fleet-stat-2">1</span><span class="ts-l">transit</span></div>
+        <div class="ts"><span class="ts-n fleet-stat-3">2</span><span class="ts-l">port</span></div>
+        <div class="ts"><span class="ts-n fleet-stat-4">3</span><span class="ts-l">return</span></div>
+      </div>
+      <div class="topbar-legend">
+        <span class="leg"><i class="leg-dot leg-vessel"></i>Vessel</span>
+        <span class="leg"><i class="leg-dot leg-port"></i>Port</span>
+        <span class="leg"><i class="leg-dot leg-fishing"></i>Fishing</span>
+      </div>
+    </header>
 
-      <!-- Map + Roster -->
-      <div class="fleet-map-panel-wrap">
+    <!-- Main content: roster + map -->
+    <main class="main">
 
-        <!-- Roster Panel -->
-        <aside class="fleet-roster" id="fleetRoster">
-          <div class="fleet-roster-title">Fleet Roster</div>
-          <div id="rosterList"></div>
-        </aside>
+      <!-- Roster sidebar -->
+      <aside class="roster" id="fleetRoster">
+        <div class="roster-head">Fleet Roster</div>
+        <div class="roster-scroll" id="rosterList"></div>
+      </aside>
 
-        <!-- Map -->
-        <div class="fleet-map" id="fleetMap">
-          <canvas id="fleetCanvasDepth"></canvas>
-          <canvas id="fleetCanvasCurrents"></canvas>
-          <canvas id="fleetCanvasCoast"></canvas>
-          <canvas id="fleetCanvasVessels"></canvas>
-          <canvas id="fleetCanvasAtmo"></canvas>
+      <!-- Map viewport -->
+      <div class="map" id="fleetMap">
+        <canvas id="fleetCanvasDepth"></canvas>
+        <canvas id="fleetCanvasCurrents"></canvas>
+        <canvas id="fleetCanvasCoast"></canvas>
+        <canvas id="fleetCanvasVessels"></canvas>
+        <canvas id="fleetCanvasAtmo"></canvas>
 
-          <!-- Tooltip -->
-          <div class="vessel-info" id="vesselInfo">
-            <h4 id="viName"></h4>
-            <p id="viDetail"></p>
-            <span class="vi-status" id="viStatus"></span>
-          </div>
+        <div class="vessel-info" id="vesselInfo">
+          <h4 id="viName"></h4>
+          <p id="viDetail"></p>
+          <span class="vi-status" id="viStatus"></span>
         </div>
       </div>
 
-      <!-- Integrated bottom bar: legend + stats -->
-      <div class="fleet-bottom-bar">
-        <div class="fleet-legend">
-          <div class="fleet-legend-item">
-            <span class="fleet-legend-dot dot-vessel"></span> Vessel
-          </div>
-          <div class="fleet-legend-item">
-            <span class="fleet-legend-dot dot-port"></span> Port
-          </div>
-          <div class="fleet-legend-item">
-            <span class="fleet-legend-dot dot-route"></span> Route
-          </div>
-          <div class="fleet-legend-item">
-            <span class="fleet-legend-dot dot-fishing"></span> Fishing Zone
-          </div>
-        </div>
+    </main>
 
-        <div class="fleet-stats">
-          <div class="fleet-stat">
-            <div class="fleet-stat-n fleet-stat-0">22</div>
-            <div class="fleet-stat-l">Vessels</div>
-          </div>
-          <div class="fleet-stat">
-            <div class="fleet-stat-n fleet-stat-1">17</div>
-            <div class="fleet-stat-l">Fishing</div>
-          </div>
-          <div class="fleet-stat">
-            <div class="fleet-stat-n fleet-stat-2">1</div>
-            <div class="fleet-stat-l">Transit</div>
-          </div>
-          <div class="fleet-stat">
-            <div class="fleet-stat-n fleet-stat-3">2</div>
-            <div class="fleet-stat-l">Port</div>
-          </div>
-          <div class="fleet-stat">
-            <div class="fleet-stat-n fleet-stat-4">3</div>
-            <div class="fleet-stat-l">Return</div>
-          </div>
-        </div>
-      </div>
+  </div>
 
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="vv-footer">
-    Viking Village &middot; 19th St. &amp; Bayview Ave. &middot; Barnegat Light, NJ 08006
-    &nbsp;&middot;&nbsp;
-    <a href="https://www.vikingvillage.net" target="_blank" rel="noopener">vikingvillage.net</a>
-  </footer>
-
-  <!-- Fleet Map Module -->
   <script type="module">
     import { FleetMap } from './fleet-map.js';
 
@@ -220,7 +71,6 @@
       title: 'Viking Village',
       subtitle: 'Est. 1927 \u00b7 Barnegat Light, NJ',
       bounds: { latN: 40.8, latS: 38.8, lonW: -74.35, lonE: -71.2 },
-
       lighthouse: { lat: 39.7644, lon: -74.1061 },
 
       vessels: [

@@ -19,6 +19,7 @@
 
 var STATUS_CLASS_MAP = {
   'Fishing':    'status-fishing',
+  'Scalloping': 'status-scalloping',
   'In Transit': 'status-in-transit',
   'Returning':  'status-returning',
   'In Port':    'status-in-port',

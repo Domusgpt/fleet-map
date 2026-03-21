@@ -1,257 +1,297 @@
 /* =============================================================================
-
-   VIKING VILLAGE FLEET MAP — Barnegat Light, NJ
+   VIKING VILLAGE FLEET MAP — Full-Viewport App Shell
    =============================================================================
-
-   Color palette inspired by:
-     - Barnegat Lighthouse ("Old Barney"): red & white horizontal bands
-     - Turquoise green Atlantic waters off the Jersey Shore
-     - Sandy LBI beach dunes and golden hour light
-     - Night indigo deep ocean
-     - Pine Barrens evergreen forest
-
+   Designed to fill the entire browser window on any device.
+   Embeddable: drop into an iframe or div and it fills its container.
    ============================================================================= */
 
-
-/* =============================================
-   Section 1: CUSTOM PROPERTIES
-   ============================================= */
+/* ── Reset ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --fm-accent:       #C41E3A;
-  --fm-accent-lt:    #E8364F;
-  --fm-accent-dim:   rgba(196, 30, 58, 0.08);
+  /* Palette */
+  --c-bg:       #091420;
+  --c-surface:  rgba(12, 24, 42, 0.85);
+  --c-border:   rgba(196, 30, 58, 0.08);
+  --c-accent:   #C41E3A;
+  --c-teal:     #3BA99C;
+  --c-green:    #3A6B35;
+  --c-sand:     #D4B896;
+  --c-sand-dim: #B8A07A;
 
-  --fm-deep:         #0A1628;
-  --fm-ocean-mid:    rgba(16, 32, 64, 0.5);
-  --fm-ocean-shelf:  #1B3A5C;
+  /* Fonts */
+  --f-display: 'Playfair Display', Georgia, serif;
+  --f-sans:    'Josefin Sans', sans-serif;
 
-  --fm-land:         #3A6B35;
-  --fm-land-dark:    #264723;
-  --fm-land-deep:    rgba(42, 71, 38, 0.95);
-
-  --fm-text:         #D4B896;
-  --fm-text-warm:    #C8A882;
-  --fm-text-muted:   #3BA99C;
-
-  --fm-status-fishing:   var(--fm-accent);
-  --fm-status-transit:   var(--fm-text-muted);
-  --fm-status-returning: var(--fm-text-muted);
-  --fm-status-port:      var(--fm-land);
-
-  --fm-font-display: 'Playfair Display', Georgia, serif;
-  --fm-font-sans:    'Josefin Sans', sans-serif;
-
-  --fm-max-width:          1600px;
-  --fm-roster-width:       240px;
-  --fm-gap:                0;
-  --fm-border:             rgba(196, 30, 58, 0.10);
-  --fm-border-subtle:      rgba(196, 30, 58, 0.05);
-  --fm-glass:              rgba(10, 22, 40, 0.88);
+  /* Sizing */
+  --topbar-h: 44px;
+  --roster-w: 220px;
 }
 
 
-/* =============================================
-   Section 2: LAYOUT
-   ============================================= */
-
-.fleet-section {
-  position: relative;
-  z-index: 5;
-  background: var(--fm-deep);
+/* ── App shell: fills viewport ── */
+html, body {
+  height: 100%;
   overflow: hidden;
+  background: var(--c-bg);
+  color: var(--c-sand);
+  font-family: var(--f-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-.fleet-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 25% 70%, rgba(27, 58, 92, 0.15), transparent 55%),
-    radial-gradient(ellipse at 75% 30%, rgba(58, 107, 53, 0.06), transparent 50%);
-  pointer-events: none;
-}
-
-.fleet-map-wrap {
-  position: relative;
-  max-width: var(--fm-max-width);
-  margin: 0 auto;
-  padding: 0 1.5rem 2rem;
-}
-
-.fleet-map-panel-wrap {
+.app {
   display: flex;
-  gap: 0;
-  align-items: stretch;
-  border: 1px solid var(--fm-border);
-  background: var(--fm-glass);
-  overflow: hidden;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
 }
 
 
-/* =============================================
-   Section 3: HEADER — compact inline bar
-   ============================================= */
-
-.fleet-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  position: relative;
-  z-index: 2;
-}
-
-
-/* =============================================
-   Section 4: ROSTER PANEL
-   ============================================= */
-
-.fleet-roster {
-  width: var(--fm-roster-width);
+/* ── Top bar ── */
+.topbar {
+  height: var(--topbar-h);
   flex-shrink: 0;
-  background: rgba(8, 16, 32, 0.6);
-  border-right: 1px solid var(--fm-border-subtle);
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  /* Custom scrollbar */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(196, 30, 58, 0.15) transparent;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0 1rem;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  z-index: 10;
 }
 
-.fleet-roster::-webkit-scrollbar {
-  width: 4px;
+.topbar-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-right: auto;
 }
-.fleet-roster::-webkit-scrollbar-track {
-  background: transparent;
+
+.topbar-title {
+  font-family: var(--f-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--c-sand);
+  letter-spacing: 0.03em;
 }
-.fleet-roster::-webkit-scrollbar-thumb {
-  background: rgba(196, 30, 58, 0.2);
+
+.topbar-sub {
+  font-size: 0.55rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-teal);
+  opacity: 0.6;
+}
+
+/* Stats pills in topbar */
+.topbar-stats {
+  display: flex;
+  gap: 0.15rem;
+  align-items: center;
+}
+
+.ts {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 2px;
 }
 
-.fleet-roster-title {
-  font-family: var(--fm-font-sans);
-  font-weight: 300;
-  font-size: 0.6rem;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: var(--fm-accent);
-  text-align: center;
-  padding: 1rem 1rem 0.75rem;
-  border-bottom: 1px solid var(--fm-border-subtle);
-  position: sticky;
-  top: 0;
-  background: rgba(8, 16, 32, 0.95);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 2;
+.ts-n {
+  font-size: 0.85rem;
+  font-weight: 200;
+  color: var(--c-accent);
+  line-height: 1;
 }
 
+.ts-l {
+  font-size: 0.45rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-sand-dim);
+  opacity: 0.5;
+}
+
+/* Legend dots in topbar */
+.topbar-legend {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.leg {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.48rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-sand-dim);
+  opacity: 0.55;
+}
+
+.leg-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid;
+}
+
+.leg-vessel { background: rgba(196,30,58,0.6); border-color: var(--c-accent); }
+.leg-port   { background: rgba(58,107,53,0.6); border-color: var(--c-green); }
+.leg-fishing {
+  background: none;
+  border-color: var(--c-accent);
+  box-shadow: 0 0 4px rgba(196,30,58,0.3);
+}
+
+
+/* ── Main area: roster + map ── */
+.main {
+  flex: 1;
+  display: flex;
+  min-height: 0; /* critical for flex children to shrink */
+  overflow: hidden;
+}
+
+
+/* ── Roster sidebar ── */
+.roster {
+  width: var(--roster-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8, 16, 32, 0.5);
+  border-right: 1px solid var(--c-border);
+}
+
+.roster-head {
+  font-size: 0.55rem;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  text-align: center;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+
+.roster-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(196,30,58,0.12) transparent;
+}
+
+.roster-scroll::-webkit-scrollbar { width: 3px; }
+.roster-scroll::-webkit-scrollbar-track { background: transparent; }
+.roster-scroll::-webkit-scrollbar-thumb { background: rgba(196,30,58,0.18); border-radius: 2px; }
+
+/* Roster items */
 .roster-item {
-  padding: 0.65rem 1rem;
-  border-bottom: 1px solid rgba(196, 30, 58, 0.03);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(196,30,58,0.03);
   cursor: default;
-  transition: background 0.25s ease;
+  transition: background 0.2s;
 }
 
 .roster-item:hover,
 .roster-item.active {
-  background: rgba(196, 30, 58, 0.06);
+  background: rgba(196,30,58,0.06);
 }
 
 .roster-item-name {
-  font-family: var(--fm-font-display);
-  font-size: 0.82rem;
-  color: var(--fm-text);
-  margin-bottom: 0.2rem;
-  line-height: 1.3;
+  font-family: var(--f-display);
+  font-size: 0.78rem;
+  color: var(--c-sand);
+  line-height: 1.25;
+  margin-bottom: 0.15rem;
 }
 
 .roster-item-status {
   display: inline-block;
-  padding: 0.12rem 0.5rem;
-  font-family: var(--fm-font-sans);
-  font-size: 0.5rem;
-  letter-spacing: 0.15em;
+  padding: 0.08rem 0.4rem;
+  font-size: 0.44rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  border: 1px solid rgba(58, 107, 53, 0.25);
-  color: var(--fm-land);
-  margin-bottom: 0.2rem;
-  border-radius: 1px;
+  border: 1px solid rgba(58,107,53,0.25);
+  color: var(--c-green);
+  margin-bottom: 0.15rem;
 }
 
 .roster-item-status.status-fishing,
 .roster-item-status.status-scalloping {
-  border-color: rgba(196, 30, 58, 0.3);
-  color: var(--fm-accent);
+  border-color: rgba(196,30,58,0.25);
+  color: var(--c-accent);
 }
 
-.roster-item-status.status-in-transit {
-  border-color: rgba(59, 169, 156, 0.25);
-  color: var(--fm-text-muted);
-}
-
+.roster-item-status.status-in-transit,
 .roster-item-status.status-returning {
-  border-color: rgba(59, 169, 156, 0.25);
-  color: var(--fm-text-muted);
+  border-color: rgba(59,169,156,0.2);
+  color: var(--c-teal);
 }
 
 .roster-item-detail {
-  font-family: var(--fm-font-sans);
+  font-size: 0.5rem;
   font-weight: 300;
-  font-size: 0.58rem;
-  letter-spacing: 0.08em;
-  color: var(--fm-text-warm);
-  opacity: 0.55;
+  letter-spacing: 0.06em;
+  color: var(--c-sand-dim);
+  opacity: 0.5;
 }
 
 .roster-item-catch {
-  font-family: var(--fm-font-sans);
+  font-size: 0.46rem;
   font-weight: 300;
-  font-size: 0.52rem;
-  letter-spacing: 0.08em;
-  color: var(--fm-text-warm);
-  opacity: 0.35;
-  margin-top: 0.1rem;
+  letter-spacing: 0.06em;
+  color: var(--c-sand-dim);
+  opacity: 0.3;
+  margin-top: 0.05rem;
 }
 
 
-/* =============================================
-   Section 5: MAP CONTAINER & CANVASES
-   ============================================= */
-
-.fleet-map {
-  position: relative;
+/* ── Map viewport: fills remaining space ── */
+.map {
   flex: 1;
+  position: relative;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 40% 50%, var(--fm-ocean-mid), rgba(10, 22, 40, 0.95)),
-    var(--fm-deep);
+    radial-gradient(ellipse at 40% 50%, rgba(16,32,64,0.4), rgba(9,20,32,0.95)),
+    var(--c-bg);
 }
 
-/* Inner decorative border */
-.fleet-map::before {
+/* Subtle inner border */
+.map::before {
   content: '';
   position: absolute;
-  inset: 6px;
-  border: 1px solid rgba(196, 30, 58, 0.04);
+  inset: 4px;
+  border: 1px solid rgba(196,30,58,0.03);
   z-index: 6;
   pointer-events: none;
 }
 
-/* Noise texture */
-.fleet-map::after {
+/* Film grain */
+.map::after {
   content: '';
   position: absolute;
   inset: 0;
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity: 0.025;
+  opacity: 0.02;
   z-index: 7;
   pointer-events: none;
 }
 
-.fleet-map canvas {
+.map canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -272,23 +312,20 @@
 }
 
 
-/* =============================================
-   Section 6: VESSEL TOOLTIP
-   ============================================= */
-
+/* ── Vessel tooltip ── */
 .vessel-info {
   position: absolute;
   z-index: 10;
-  background: rgba(10, 22, 40, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(196, 30, 58, 0.18);
-  padding: 0.85rem 1.1rem;
-  min-width: 180px;
+  background: rgba(9,20,32,0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(196,30,58,0.15);
+  padding: 0.75rem 1rem;
+  min-width: 170px;
   pointer-events: none;
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.25s, transform 0.25s;
+  transform: translateY(5px);
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .vessel-info.active {
@@ -297,266 +334,120 @@
 }
 
 .vessel-info h4 {
-  font-family: var(--fm-font-display);
-  font-size: 0.9rem;
-  color: var(--fm-text);
-  margin-bottom: 0.25rem;
+  font-family: var(--f-display);
+  font-size: 0.85rem;
+  color: var(--c-sand);
+  margin-bottom: 0.2rem;
 }
 
 .vessel-info p {
-  font-family: var(--fm-font-sans);
+  font-size: 0.58rem;
   font-weight: 300;
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  color: var(--fm-text-warm);
-  line-height: 1.7;
+  letter-spacing: 0.08em;
+  color: var(--c-sand-dim);
+  line-height: 1.6;
 }
 
 .vessel-info .vi-status {
   display: inline-block;
-  padding: 0.12rem 0.5rem;
-  font-size: 0.5rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  border: 1px solid rgba(58, 107, 53, 0.3);
-  color: var(--fm-land);
-  margin-top: 0.35rem;
-  border-radius: 1px;
-}
-
-
-/* =============================================
-   Section 7: LEGEND & STATS — integrated bar
-   ============================================= */
-
-.fleet-bottom-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(8, 16, 32, 0.6);
-  border: 1px solid var(--fm-border);
-  border-top: none;
-  max-width: var(--fm-max-width);
-  margin: 0 auto;
-}
-
-.fleet-legend {
-  display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.fleet-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--fm-font-sans);
-  font-weight: 300;
-  font-size: 0.58rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.46rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--fm-text-warm);
-  opacity: 0.7;
-}
-
-.fleet-legend-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1px solid;
-}
-
-.dot-vessel {
-  background: rgba(196, 30, 58, 0.7);
-  border-color: var(--fm-accent);
-}
-
-.dot-port {
-  background: rgba(58, 107, 53, 0.7);
-  border-color: var(--fm-land);
-}
-
-.dot-route {
-  background: none;
-  border-color: var(--fm-text-muted);
-  border-style: dashed;
-  width: 16px;
-  height: 0;
-  border-radius: 0;
-}
-
-.dot-fishing {
-  background: none;
-  border-color: var(--fm-accent);
-  box-shadow: 0 0 5px rgba(196, 30, 58, 0.3);
-}
-
-.fleet-stats {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.fleet-stat {
-  text-align: center;
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-
-.fleet-stat-n {
-  font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 1.15rem;
-  color: var(--fm-accent);
-  line-height: 1;
-}
-
-.fleet-stat-l {
-  font-family: var(--fm-font-sans);
-  font-weight: 300;
-  font-size: 0.5rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--fm-text-warm);
-  opacity: 0.5;
-}
-
-/* Divider between stats */
-.fleet-stat + .fleet-stat {
-  padding-left: 1.5rem;
-  border-left: 1px solid var(--fm-border-subtle);
+  border: 1px solid rgba(58,107,53,0.25);
+  color: var(--c-green);
+  margin-top: 0.3rem;
 }
 
 
-/* =============================================
-   Section 8: RESPONSIVE
-   ============================================= */
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
 
-/* Tablet */
-@media (max-width: 1100px) {
-  :root {
-    --fm-roster-width: 200px;
-  }
+/* ── Tablet: collapse roster width ── */
+@media (max-width: 1024px) {
+  :root { --roster-w: 180px; }
 }
 
-/* Mobile */
+/* ── Mobile: roster becomes top strip, topbar simplifies ── */
 @media (max-width: 768px) {
-  .fleet-map-wrap {
-    padding: 0 0.5rem 1rem;
+  :root {
+    --topbar-h: 38px;
+    --roster-w: 100%;
   }
 
-  .fleet-map-panel-wrap {
-    flex-direction: column;
-  }
-
-  .fleet-roster {
-    width: 100%;
-    max-height: none;
-    border-right: none;
-    border-bottom: 1px solid var(--fm-border-subtle);
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    scrollbar-width: thin;
-    scrollbar-color: rgba(196, 30, 58, 0.12) transparent;
-  }
-
-  .fleet-roster::-webkit-scrollbar {
-    height: 3px;
-  }
-
-  .fleet-roster-title {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    padding: 0.6rem 0.35rem;
-    border-bottom: none;
-    border-right: 1px solid var(--fm-border-subtle);
-    min-width: 24px;
-    font-size: 0.5rem;
-    position: static;
-  }
-
-  .roster-item {
-    min-width: 130px;
-    max-width: 160px;
-    border-bottom: none;
-    border-right: 1px solid rgba(196, 30, 58, 0.03);
-    padding: 0.5rem 0.7rem;
-  }
-
-  .roster-item-name { font-size: 0.72rem; }
-  .roster-item-status { font-size: 0.44rem; }
-
-  .fleet-map {
-    min-height: 50vh;
-    min-height: 50dvh;
-  }
-
-  .fleet-bottom-bar {
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.6rem 0.75rem;
-  }
-
-  .fleet-legend {
-    gap: 0.8rem;
-  }
-
-  .fleet-legend-item {
-    font-size: 0.5rem;
-  }
-
-  .fleet-stats {
-    gap: 0.75rem;
-  }
-
-  .fleet-stat + .fleet-stat {
-    padding-left: 0.75rem;
-  }
-
-  .fleet-stat-n { font-size: 1rem; }
-  .fleet-stat-l { font-size: 0.44rem; }
-}
-
-/* Small phones */
-@media (max-width: 420px) {
-  .fleet-map {
-    min-height: 45vh;
-    min-height: 45dvh;
-  }
-
-  .fleet-legend-item {
-    font-size: 0.45rem;
-    gap: 0.3rem;
-  }
-
-  .fleet-legend {
+  .topbar {
+    padding: 0 0.6rem;
     gap: 0.5rem;
   }
-}
 
-/* Landscape / wide screens — fill the viewport */
-@media (min-aspect-ratio: 16/10) and (min-width: 1000px) {
-  .fleet-map-panel-wrap {
-    height: calc(100vh - 10rem);
-    height: calc(100dvh - 10rem);
+  .topbar-title { font-size: 0.9rem; }
+  .topbar-sub { display: none; }
+  .topbar-legend { display: none; }
+
+  .ts { padding: 0.15rem 0.35rem; }
+  .ts-n { font-size: 0.75rem; }
+  .ts-l { font-size: 0.38rem; }
+
+  .main {
+    flex-direction: column;
+  }
+
+  .roster {
+    width: 100%;
+    flex-shrink: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .roster-head {
+    display: none;
+  }
+
+  .roster-scroll {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: none;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(196,30,58,0.1) transparent;
+  }
+
+  .roster-scroll::-webkit-scrollbar { height: 2px; }
+
+  .roster-item {
+    min-width: 115px;
+    max-width: 140px;
+    flex-shrink: 0;
+    border-bottom: none;
+    border-right: 1px solid rgba(196,30,58,0.03);
+    padding: 0.35rem 0.5rem;
+  }
+
+  .roster-item-name { font-size: 0.66rem; }
+  .roster-item-status { font-size: 0.38rem; padding: 0.05rem 0.3rem; }
+  .roster-item-detail { font-size: 0.42rem; }
+  .roster-item-catch { display: none; }
+
+  .map {
+    flex: 1;
+    min-height: 0;
   }
 }
 
-/* Ultrawide */
+/* ── Small phones: tighter topbar ── */
+@media (max-width: 420px) {
+  .topbar-stats .ts:nth-child(n+4) { display: none; } /* hide port + return */
+  .topbar-title { font-size: 0.8rem; }
+}
+
+/* ── Ultrawide ── */
 @media (min-width: 1800px) {
-  :root {
-    --fm-max-width: 1800px;
-    --fm-roster-width: 280px;
-  }
+  :root { --roster-w: 260px; }
 
-  .roster-item-name { font-size: 0.88rem; }
-  .roster-item-status { font-size: 0.55rem; }
-  .roster-item-detail { font-size: 0.62rem; }
+  .roster-item-name { font-size: 0.85rem; }
+  .roster-item-status { font-size: 0.5rem; }
+  .roster-item-detail { font-size: 0.55rem; }
+  .topbar-title { font-size: 1.2rem; }
 }
