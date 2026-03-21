@@ -3,315 +3,251 @@
    DASCOLA FLEET MAP — Customizable Stylesheet
    =============================================================================
 
-   This stylesheet controls all visual styling for the interactive fleet map,
-   including the roster panel, ocean canvas, vessel tooltips, legend, and stats.
+   QUICK REBRAND GUIDE — Change these 5 variables:
 
-   It is designed to be the SINGLE FILE you edit when adapting this fleet map
-   to your own brand, fleet, or organization.
-
-   ─────────────────────────────────────────────────────────────────────────────
-   QUICK REBRAND GUIDE
-   ─────────────────────────────────────────────────────────────────────────────
-
-   To restyle the entire map for your brand, change these 5 variables:
-
-     --fm-accent        → Your primary brand/gold color   (currently #C9A84C)
-     --fm-deep          → Dark background tone            (currently #050B12)
-     --fm-land          → Land/port highlight color       (currently #006847)
-     --fm-text          → Primary light text color        (currently #F0EBE0)
-     --fm-font-display  → Headline/vessel name font       (currently Playfair Display)
-
-   Everything else derives from or complements these five values.
-
-   ─────────────────────────────────────────────────────────────────────────────
-   ARCHITECTURE NOTES
-   ─────────────────────────────────────────────────────────────────────────────
-
-   • The map uses 5 stacked <canvas> layers (depth → currents → coastline →
-     vessels → atmosphere), each at a different z-index.
-   • Only the vessel canvas receives pointer events; all others are visual-only.
-   • The roster panel scrolls vertically on desktop and horizontally on mobile
-     (via writing-mode rotation of its title).
-   • Colors that appear inside rgba() cannot use CSS custom properties directly.
-     These are marked with comments like  /* --fm-accent @ 0.04 */  so you can
-     find and update them when rebranding.
+     --fm-accent        → Your primary brand color    (currently #C9A84C)
+     --fm-deep          → Dark background tone        (currently #050B12)
+     --fm-land          → Land/port highlight color   (currently #006847)
+     --fm-text          → Primary light text color    (currently #F0EBE0)
+     --fm-font-display  → Headline/vessel name font   (currently Playfair Display)
 
    ============================================================================= */
 
 
 /* =============================================
    Section 1: CUSTOM PROPERTIES
-   Change these to rebrand the entire map.
    ============================================= */
 
 :root {
-
-  /* --- Brand accent (gold) ------------------------------------------------
-     The dominant accent used for vessel names, borders, stats, and highlights.
-     --fm-accent-lt is a brighter tint; --fm-accent-dim is a subdued version. */
   --fm-accent:       #C9A84C;
   --fm-accent-lt:    #E0C872;
   --fm-accent-dim:   rgba(201, 168, 76, 0.08);
 
-  /* --- Ocean / background -------------------------------------------------
-     The deep-water background color and two lighter shades used in gradients
-     to simulate mid-ocean and continental-shelf depth bands. */
   --fm-deep:         #050B12;
   --fm-ocean-mid:    rgba(13, 34, 64, 0.4);
   --fm-ocean-shelf:  #1B3A5C;
 
-  /* --- Land / port --------------------------------------------------------
-     Green tones representing land masses, ports, and "operational" status. */
   --fm-land:         #006847;
   --fm-land-dark:    #003B2E;
   --fm-land-deep:    rgba(0, 59, 46, 0.95);
 
-  /* --- Text ---------------------------------------------------------------
-     Three tiers of text contrast: primary (bright cream), warm (muted cream),
-     and cool/muted (steel blue for secondary information). */
   --fm-text:         #F0EBE0;
   --fm-text-warm:    #D8D0C0;
   --fm-text-muted:   #8BAFC4;
 
-  /* --- Status colors ------------------------------------------------------
-     Each vessel status gets a distinct color. These map to badge borders
-     and text in the roster and tooltip. */
   --fm-status-fishing:   var(--fm-accent);
   --fm-status-transit:   var(--fm-text-muted);
   --fm-status-returning: var(--fm-text-muted);
   --fm-status-port:      var(--fm-land);
 
-  /* --- Typography ---------------------------------------------------------
-     Two font stacks: a decorative serif for vessel names and headings,
-     and a clean sans-serif for labels, stats, and UI chrome. */
   --fm-font-display: 'Playfair Display', Georgia, serif;
   --fm-font-sans:    'Josefin Sans', sans-serif;
 
-  /* --- Layout -------------------------------------------------------------
-     Structural dimensions that control overall sizing and breakpoints.
-     --fm-map-ratio and --fm-map-ratio-mobile set the canvas aspect ratio. */
-  --fm-max-width:          1400px;
-  --fm-roster-width:       220px;
-  --fm-map-ratio:          16 / 10;
-  --fm-map-ratio-mobile:   4 / 5;
-  --fm-gap:                1.5rem;
-  --fm-mobile-break:       900px;
+  --fm-max-width:          1600px;
+  --fm-roster-width:       240px;
+  --fm-gap:                0;
+  --fm-border:             rgba(201, 168, 76, 0.10);
+  --fm-border-subtle:      rgba(201, 168, 76, 0.05);
+  --fm-glass:              rgba(4, 10, 16, 0.88);
 }
 
 
 /* =============================================
    Section 2: LAYOUT
-   Outer section wrapper and flex container
-   that holds the roster + map side-by-side.
    ============================================= */
 
-/* Full-viewport section that isolates the fleet map from surrounding content.
-   z-index: 5 keeps it above any parallax/scroll layers behind it. */
 .fleet-section {
   position: relative;
   z-index: 5;
-  min-height: 100vh;
   background: var(--fm-deep);
   overflow: hidden;
 }
 
-/* Subtle radial gradients that add depth and color variation to the section
-   background — a cool blue glow lower-left, a green hint upper-right.
-   These sit behind all content via the pseudo-element. */
 .fleet-section::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 60%, rgba(27, 58, 92, 0.12), transparent 55%),  /* --fm-ocean-shelf @ 0.12 */
-    radial-gradient(ellipse at 70% 40%, rgba(0, 104, 71, 0.08), transparent 50%);  /* --fm-land @ 0.08 */
+    radial-gradient(ellipse at 30% 60%, rgba(27, 58, 92, 0.12), transparent 55%),
+    radial-gradient(ellipse at 70% 40%, rgba(0, 104, 71, 0.08), transparent 50%);
+  pointer-events: none;
 }
 
-/* Centered content wrapper with comfortable padding. */
 .fleet-map-wrap {
   position: relative;
   max-width: var(--fm-max-width);
   margin: 0 auto;
-  padding: 3rem 2rem;
+  padding: 0 1.5rem 2rem;
 }
 
-/* Side-by-side layout: roster on the left, map canvas on the right.
-   align-items: stretch ensures both panels share the same height. */
 .fleet-map-panel-wrap {
   display: flex;
-  gap: var(--fm-gap);
+  gap: 0;
   align-items: stretch;
+  border: 1px solid var(--fm-border);
+  background: var(--fm-glass);
+  overflow: hidden;
 }
 
 
 /* =============================================
    Section 3: HEADER
-   Centered title area above the map panels.
    ============================================= */
 
 .fleet-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   position: relative;
-  z-index: 2;         /* Sits above the section::before gradient */
+  z-index: 2;
 }
 
 
 /* =============================================
    Section 4: ROSTER PANEL
-   Left-side vessel list with status badges.
-   Scrolls vertically on desktop, horizontally
-   on mobile (see Section 8).
    ============================================= */
 
-/* The roster is a fixed-width sidebar with a dark, blurred-glass background.
-   max-height prevents it from pushing the layout taller than the map. */
 .fleet-roster {
   width: var(--fm-roster-width);
   flex-shrink: 0;
-  background: rgba(4, 10, 16, 0.85);         /* --fm-deep @ 0.85 */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(201, 168, 76, 0.08); /* --fm-accent @ 0.08 */
+  background: rgba(4, 10, 16, 0.6);
+  border-right: 1px solid var(--fm-border-subtle);
   overflow-y: auto;
-  max-height: 65vh;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.15) transparent;
 }
 
-/* Small, ultra-spaced uppercase title pinned to the top of the roster. */
+.fleet-roster::-webkit-scrollbar {
+  width: 4px;
+}
+.fleet-roster::-webkit-scrollbar-track {
+  background: transparent;
+}
+.fleet-roster::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.2);
+  border-radius: 2px;
+}
+
 .fleet-roster-title {
   font-family: var(--fm-font-sans);
   font-weight: 300;
-  font-size: 0.55rem;
-  letter-spacing: 0.3em;
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--fm-accent);
   text-align: center;
-  padding: 1rem 0.8rem 0.8rem;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.06); /* --fm-accent @ 0.06 */
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--fm-border-subtle);
+  position: sticky;
+  top: 0;
+  background: rgba(4, 10, 16, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2;
 }
 
-/* Individual vessel row. Subtle bottom border separates entries. */
 .roster-item {
-  padding: 0.7rem 0.8rem;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.04); /* --fm-accent @ 0.04 */
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.03);
   cursor: default;
-  transition: background 0.3s;
+  transition: background 0.25s ease;
 }
 
-/* Highlight on hover or when the vessel is selected (clicked on map). */
 .roster-item:hover,
 .roster-item.active {
-  background: rgba(201, 168, 76, 0.04); /* --fm-accent @ 0.04 */
+  background: rgba(201, 168, 76, 0.06);
 }
 
-/* Vessel name — uses the display serif for elegance. */
 .roster-item-name {
   font-family: var(--fm-font-display);
-  font-size: 0.75rem;
-  color: var(--fm-accent);
+  font-size: 0.82rem;
+  color: var(--fm-text);
   margin-bottom: 0.2rem;
+  line-height: 1.3;
 }
 
-/* Status badge: small pill with a colored border indicating vessel state.
-   Default style is "port" (green). Modifier classes below override colors. */
 .roster-item-status {
   display: inline-block;
-  padding: 0.1rem 0.4rem;
+  padding: 0.12rem 0.5rem;
   font-family: var(--fm-font-sans);
-  font-size: 0.42rem;
+  font-size: 0.5rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  border: 1px solid rgba(0, 104, 71, 0.3); /* --fm-land @ 0.3 — default "port" */
+  border: 1px solid rgba(0, 104, 71, 0.25);
   color: var(--fm-land);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
+  border-radius: 1px;
 }
 
-/* Fishing vessels get the accent/gold badge to stand out on the roster. */
 .roster-item-status.status-fishing {
-  border-color: rgba(201, 168, 76, 0.3); /* --fm-accent @ 0.3 */
+  border-color: rgba(201, 168, 76, 0.3);
   color: var(--fm-accent);
 }
 
-/* In-transit and returning vessels share the cool muted-blue styling. */
 .roster-item-status.status-in-transit {
-  border-color: rgba(139, 175, 196, 0.3); /* --fm-text-muted @ 0.3 */
+  border-color: rgba(139, 175, 196, 0.25);
   color: var(--fm-text-muted);
 }
 
 .roster-item-status.status-returning {
-  border-color: rgba(139, 175, 196, 0.3); /* --fm-text-muted @ 0.3 */
+  border-color: rgba(139, 175, 196, 0.25);
   color: var(--fm-text-muted);
 }
 
-/* Secondary detail line (e.g., coordinates or destination). */
 .roster-item-detail {
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.5rem;
-  letter-spacing: 0.1em;
+  font-weight: 300;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
   color: var(--fm-text-warm);
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
-/* Tertiary catch data — the most subdued text in the roster. */
 .roster-item-catch {
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.45rem;
-  letter-spacing: 0.1em;
+  font-weight: 300;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
   color: var(--fm-text-warm);
-  opacity: 0.4;
+  opacity: 0.35;
   margin-top: 0.1rem;
 }
 
 
 /* =============================================
    Section 5: MAP CONTAINER & CANVASES
-   The ocean map viewport and its five stacked
-   canvas layers, plus decorative overlays.
    ============================================= */
 
-/* The map container uses aspect-ratio to maintain proportions and a subtle
-   gold border. The radial gradient simulates deep-ocean-to-abyss shading. */
 .fleet-map {
   position: relative;
   flex: 1;
-  aspect-ratio: var(--fm-map-ratio);
-  max-height: 65vh;
-  border: 1px solid rgba(201, 168, 76, 0.12); /* --fm-accent @ 0.12 */
+  min-height: 0;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at center, var(--fm-ocean-mid), rgba(4, 10, 16, 0.95)),  /* --fm-deep @ 0.95 */
+    radial-gradient(ellipse at 40% 50%, var(--fm-ocean-mid), rgba(4, 10, 16, 0.95)),
     var(--fm-deep);
 }
 
-/* Inner decorative border — an inset frame (8px margin) that adds a second,
-   more subtle gold line inside the map. pointer-events: none lets clicks
-   pass through to the vessel canvas beneath. */
 .fleet-map::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border: 1px solid rgba(201, 168, 76, 0.06); /* --fm-accent @ 0.06 */
-  margin: 8px;
+  inset: 6px;
+  border: 1px solid rgba(201, 168, 76, 0.04);
   z-index: 6;
   pointer-events: none;
 }
 
-/* Noise texture overlay — a faint SVG noise pattern at 3% opacity that adds
-   analog/film grain to the map surface. Sits above all canvas layers but below
-   tooltips. The data URI is kept inline for zero-request loading. */
 .fleet-map::after {
   content: '';
   position: absolute;
   inset: 0;
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity: 0.03;
+  opacity: 0.025;
   z-index: 7;
   pointer-events: none;
 }
 
-/* All five canvases are absolutely positioned to fill the map container. */
 .fleet-map canvas {
   position: absolute;
   inset: 0;
@@ -319,25 +255,12 @@
   height: 100%;
 }
 
-/*
-   Canvas z-index stacking order (bottom → top):
-   ─────────────────────────────────────────────
-   1. Depth      — Bathymetric color bands (deepest visual layer)
-   2. Currents   — Animated current flow lines
-   3. Coast      — Coastline outlines and landmasses
-   4. Vessels    — Ship icons and route lines (ONLY interactive layer)
-   5. Atmosphere — Weather/fog effects (topmost visual layer)
-
-   Only the vessel layer (#4) receives pointer events so users can hover/click
-   ships without interference from decorative layers above or below.
-*/
 #fleetCanvasDepth    { z-index: 1; }
 #fleetCanvasCurrents { z-index: 2; }
 #fleetCanvasCoast    { z-index: 3; }
 #fleetCanvasVessels  { z-index: 4; }
 #fleetCanvasAtmo     { z-index: 5; pointer-events: none; }
 
-/* Disable pointer events on all non-interactive canvas layers. */
 #fleetCanvasDepth,
 #fleetCanvasCurrents,
 #fleetCanvasCoast,
@@ -348,228 +271,261 @@
 
 /* =============================================
    Section 6: VESSEL TOOLTIP
-   Floating info card that appears when a user
-   hovers over or clicks a vessel on the map.
    ============================================= */
 
-/* The tooltip is positioned absolutely within the map via JavaScript.
-   It uses backdrop-filter for a frosted-glass effect and transitions
-   in with a subtle upward slide (translateY). */
 .vessel-info {
   position: absolute;
-  z-index: 10;              /* Above all canvas layers and decorative overlays */
-  background: rgba(4, 10, 16, 0.92);           /* --fm-deep @ 0.92 */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(201, 168, 76, 0.15);  /* --fm-accent @ 0.15 */
-  padding: 1rem 1.2rem;
-  min-width: 200px;
-  pointer-events: none;     /* Prevents tooltip from blocking map interaction */
+  z-index: 10;
+  background: rgba(4, 10, 16, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  padding: 0.85rem 1.1rem;
+  min-width: 180px;
+  pointer-events: none;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(6px);
+  transition: opacity 0.25s, transform 0.25s;
 }
 
-/* When activated by JS, the tooltip fades in and slides up to its final position. */
 .vessel-info.active {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Vessel name inside the tooltip. */
 .vessel-info h4 {
   font-family: var(--fm-font-display);
-  font-size: 0.95rem;
-  color: var(--fm-accent);
-  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--fm-text);
+  margin-bottom: 0.25rem;
 }
 
-/* Detail text lines (coordinates, catch data, etc.). */
 .vessel-info p {
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
+  font-weight: 300;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
   color: var(--fm-text-warm);
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
-/* Status badge within the tooltip — mirrors the roster badge styling. */
 .vessel-info .vi-status {
   display: inline-block;
-  padding: 0.15rem 0.5rem;
+  padding: 0.12rem 0.5rem;
   font-size: 0.5rem;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  border: 1px solid rgba(0, 104, 71, 0.3); /* --fm-land @ 0.3 */
+  border: 1px solid rgba(0, 104, 71, 0.3);
   color: var(--fm-land);
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
+  border-radius: 1px;
 }
 
 
 /* =============================================
-   Section 7: LEGEND & STATS
-   Map legend (below the map) and fleet-wide
-   statistics summary.
+   Section 7: LEGEND & STATS — integrated bar
    ============================================= */
 
-/* Horizontally centered row of legend entries. Wraps on narrow viewports. */
-.fleet-legend {
+.fleet-bottom-bar {
   display: flex;
-  gap: 2rem;
-  justify-content: center;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(4, 10, 16, 0.6);
+  border: 1px solid var(--fm-border);
+  border-top: none;
+  max-width: var(--fm-max-width);
+  margin: 0 auto;
 }
 
-/* Each legend entry: a colored dot/line + label. */
+.fleet-legend {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .fleet-legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
+  font-weight: 300;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--fm-text-warm);
+  opacity: 0.7;
 }
 
-/* Base dot style — small circle with a colored border. */
 .fleet-legend-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   border: 1px solid;
 }
 
-/* Vessel dot: filled gold circle. */
 .dot-vessel {
-  background: rgba(201, 168, 76, 0.8); /* --fm-accent @ 0.8 */
+  background: rgba(201, 168, 76, 0.7);
   border-color: var(--fm-accent);
 }
 
-/* Port dot: filled green circle. */
 .dot-port {
-  background: rgba(0, 104, 71, 0.8); /* --fm-land @ 0.8 */
+  background: rgba(0, 104, 71, 0.7);
   border-color: var(--fm-land);
 }
 
-/* Route indicator: a short dashed line instead of a dot.
-   Overrides border-radius and dimensions to become a flat dash. */
 .dot-route {
   background: none;
   border-color: var(--fm-text-muted);
   border-style: dashed;
-  width: 20px;
+  width: 16px;
   height: 0;
   border-radius: 0;
 }
 
-/* Fishing-zone indicator: empty circle with a gold glow. */
 .dot-fishing {
   background: none;
   border-color: var(--fm-accent);
-  box-shadow: 0 0 6px rgba(201, 168, 76, 0.3); /* --fm-accent @ 0.3 */
+  box-shadow: 0 0 5px rgba(201, 168, 76, 0.3);
 }
 
-/* Stats bar: horizontally centered numbers separated by a faint gold rule. */
 .fleet-stats {
   display: flex;
-  gap: 2.5rem;
-  justify-content: center;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(201, 168, 76, 0.06); /* --fm-accent @ 0.06 */
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .fleet-stat {
   text-align: center;
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 
-/* Large numeric value (e.g., "12" vessels, "847 lbs" catch). */
 .fleet-stat-n {
   font-family: var(--fm-font-sans);
   font-weight: 200;
-  font-size: 1.8rem;
+  font-size: 1.15rem;
   color: var(--fm-accent);
+  line-height: 1;
 }
 
-/* Stat label beneath the number. */
 .fleet-stat-l {
   font-family: var(--fm-font-sans);
   font-weight: 300;
-  font-size: 0.55rem;
-  letter-spacing: 0.2em;
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--fm-text-warm);
-  margin-top: 0.2rem;
+  opacity: 0.5;
+}
+
+.fleet-stat + .fleet-stat {
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--fm-border-subtle);
 }
 
 
 /* =============================================
    Section 8: MOBILE RESPONSIVE
-   Stacks roster above the map and converts it
-   to a horizontal scrolling strip.
    ============================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+  :root {
+    --fm-roster-width: 200px;
+  }
+}
 
-  /* Switch from side-by-side to vertical stack. */
+@media (max-width: 768px) {
+  .fleet-map-wrap {
+    padding: 0 0.5rem 1rem;
+  }
+
   .fleet-map-panel-wrap {
     flex-direction: column;
   }
 
-  /* Roster becomes full-width and scrolls horizontally.
-     Items sit in a single row instead of a vertical list. */
   .fleet-roster {
     width: 100%;
-    max-height: 25vh;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--fm-border-subtle);
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201, 168, 76, 0.12) transparent;
   }
 
-  /* The roster title rotates 90° via writing-mode so it acts as a compact
-     vertical tab on the left edge of the horizontal scroll strip.
-     This saves horizontal space while keeping the label visible. */
+  .fleet-roster::-webkit-scrollbar {
+    height: 3px;
+  }
+
   .fleet-roster-title {
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    padding: 0.8rem 0.4rem;
+    padding: 0.6rem 0.35rem;
     border-bottom: none;
-    border-right: 1px solid rgba(201, 168, 76, 0.06); /* --fm-accent @ 0.06 */
-    min-width: 28px;
+    border-right: 1px solid var(--fm-border-subtle);
+    min-width: 24px;
+    font-size: 0.5rem;
+    position: static;
   }
 
-  /* Each roster card gets a fixed minimum width and vertical dividers
-     instead of the horizontal borders used on desktop. */
   .roster-item {
-    min-width: 140px;
+    min-width: 130px;
+    max-width: 160px;
     border-bottom: none;
-    border-right: 1px solid rgba(201, 168, 76, 0.04); /* --fm-accent @ 0.04 */
+    border-right: 1px solid rgba(201, 168, 76, 0.03);
+    padding: 0.5rem 0.7rem;
   }
 
-  /* Taller aspect ratio on mobile to give the map more vertical space
-     since the viewport is narrow. */
+  .roster-item-name { font-size: 0.72rem; }
+  .roster-item-status { font-size: 0.44rem; }
+
   .fleet-map {
-    aspect-ratio: var(--fm-map-ratio-mobile);
-    max-height: 55vh;
+    min-height: 50vh;
+    min-height: 50dvh;
   }
 
-  /* Tighten legend spacing on small screens. */
-  .fleet-legend {
-    gap: 1rem;
+  .fleet-bottom-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
   }
 
-  /* Stats wrap and use smaller numbers on mobile. */
-  .fleet-stats {
-    gap: 1.5rem;
-    flex-wrap: wrap;
+  .fleet-legend { gap: 0.8rem; }
+  .fleet-legend-item { font-size: 0.5rem; }
+  .fleet-stats { gap: 0.75rem; }
+  .fleet-stat + .fleet-stat { padding-left: 0.75rem; }
+  .fleet-stat-n { font-size: 1rem; }
+  .fleet-stat-l { font-size: 0.44rem; }
+}
+
+@media (max-width: 420px) {
+  .fleet-map { min-height: 45vh; min-height: 45dvh; }
+  .fleet-legend-item { font-size: 0.45rem; gap: 0.3rem; }
+  .fleet-legend { gap: 0.5rem; }
+}
+
+@media (min-aspect-ratio: 16/10) and (min-width: 1000px) {
+  .fleet-map-panel-wrap {
+    height: calc(100vh - 10rem);
+    height: calc(100dvh - 10rem);
+  }
+}
+
+@media (min-width: 1800px) {
+  :root {
+    --fm-max-width: 1800px;
+    --fm-roster-width: 280px;
   }
 
-  .fleet-stat-n {
-    font-size: 1.4rem;
-  }
+  .roster-item-name { font-size: 0.88rem; }
+  .roster-item-status { font-size: 0.55rem; }
+  .roster-item-detail { font-size: 0.62rem; }
 }

@@ -8,16 +8,7 @@
      - Turquoise green Atlantic waters off the Jersey Shore
      - Sandy LBI beach dunes and golden hour light
      - Night indigo deep ocean
-     - Pine Barrens evergreen forest (NJ state tree: Red Oak, but pines rule)
-
-   ─────────────────────────────────────────────────────────────────────────────
-   QUICK REBRAND GUIDE — Change these 5 variables:
-
-     --fm-accent        → Lighthouse red (#C41E3A)
-     --fm-deep          → Night indigo ocean (#0F1B3D)
-     --fm-land          → Pine Barrens green (#3A6B35)
-     --fm-text          → Beach sand cream (#D4B896)
-     --fm-font-display  → Headline font (Playfair Display)
+     - Pine Barrens evergreen forest
 
    ============================================================================= */
 
@@ -27,44 +18,36 @@
    ============================================= */
 
 :root {
-
-  /* --- Barnegat Lighthouse Red — accent ----------------------------------- */
   --fm-accent:       #C41E3A;
   --fm-accent-lt:    #E8364F;
   --fm-accent-dim:   rgba(196, 30, 58, 0.08);
 
-  /* --- Night Indigo Ocean — deep background -------------------------------- */
-  --fm-deep:         #0F1B3D;
-  --fm-ocean-mid:    rgba(20, 40, 80, 0.4);
+  --fm-deep:         #0A1628;
+  --fm-ocean-mid:    rgba(16, 32, 64, 0.5);
   --fm-ocean-shelf:  #1B3A5C;
 
-  /* --- Pine Barrens Green — land, ports, in-port status -------------------- */
   --fm-land:         #3A6B35;
   --fm-land-dark:    #264723;
   --fm-land-deep:    rgba(42, 71, 38, 0.95);
 
-  /* --- Beach Sand — text tones --------------------------------------------- */
   --fm-text:         #D4B896;
   --fm-text-warm:    #C8A882;
-  --fm-text-muted:   #3BA99C;  /* Turquoise — ocean accent for secondary info */
+  --fm-text-muted:   #3BA99C;
 
-  /* --- Status colors ------------------------------------------------------- */
   --fm-status-fishing:   var(--fm-accent);
   --fm-status-transit:   var(--fm-text-muted);
   --fm-status-returning: var(--fm-text-muted);
   --fm-status-port:      var(--fm-land);
 
-  /* --- Typography ---------------------------------------------------------- */
   --fm-font-display: 'Playfair Display', Georgia, serif;
   --fm-font-sans:    'Josefin Sans', sans-serif;
 
-  /* --- Layout -------------------------------------------------------------- */
-  --fm-max-width:          1400px;
-  --fm-roster-width:       220px;
-  --fm-map-ratio:          16 / 10;
-  --fm-map-ratio-mobile:   4 / 5;
-  --fm-gap:                1.5rem;
-  --fm-mobile-break:       900px;
+  --fm-max-width:          1600px;
+  --fm-roster-width:       240px;
+  --fm-gap:                0;
+  --fm-border:             rgba(196, 30, 58, 0.10);
+  --fm-border-subtle:      rgba(196, 30, 58, 0.05);
+  --fm-glass:              rgba(10, 22, 40, 0.88);
 }
 
 
@@ -75,7 +58,6 @@
 .fleet-section {
   position: relative;
   z-index: 5;
-  min-height: 100vh;
   background: var(--fm-deep);
   overflow: hidden;
 }
@@ -85,31 +67,35 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 60%, rgba(27, 58, 92, 0.12), transparent 55%),
-    radial-gradient(ellipse at 70% 40%, rgba(58, 107, 53, 0.06), transparent 50%); /* Pine green */
+    radial-gradient(ellipse at 25% 70%, rgba(27, 58, 92, 0.15), transparent 55%),
+    radial-gradient(ellipse at 75% 30%, rgba(58, 107, 53, 0.06), transparent 50%);
+  pointer-events: none;
 }
 
 .fleet-map-wrap {
   position: relative;
   max-width: var(--fm-max-width);
   margin: 0 auto;
-  padding: 3rem 2rem;
+  padding: 0 1.5rem 2rem;
 }
 
 .fleet-map-panel-wrap {
   display: flex;
-  gap: var(--fm-gap);
+  gap: 0;
   align-items: stretch;
+  border: 1px solid var(--fm-border);
+  background: var(--fm-glass);
+  overflow: hidden;
 }
 
 
 /* =============================================
-   Section 3: HEADER
+   Section 3: HEADER — compact inline bar
    ============================================= */
 
 .fleet-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   position: relative;
   z-index: 2;
 }
@@ -122,89 +108,110 @@
 .fleet-roster {
   width: var(--fm-roster-width);
   flex-shrink: 0;
-  background: rgba(15, 27, 61, 0.85);           /* --fm-deep @ 0.85 */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(196, 30, 58, 0.08);    /* --fm-accent @ 0.08 */
+  background: rgba(8, 16, 32, 0.6);
+  border-right: 1px solid var(--fm-border-subtle);
   overflow-y: auto;
-  max-height: 65vh;
+  overflow-x: hidden;
+
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(196, 30, 58, 0.15) transparent;
+}
+
+.fleet-roster::-webkit-scrollbar {
+  width: 4px;
+}
+.fleet-roster::-webkit-scrollbar-track {
+  background: transparent;
+}
+.fleet-roster::-webkit-scrollbar-thumb {
+  background: rgba(196, 30, 58, 0.2);
+  border-radius: 2px;
 }
 
 .fleet-roster-title {
   font-family: var(--fm-font-sans);
   font-weight: 300;
-  font-size: 0.55rem;
-  letter-spacing: 0.3em;
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--fm-accent);
   text-align: center;
-  padding: 1rem 0.8rem 0.8rem;
-  border-bottom: 1px solid rgba(196, 30, 58, 0.06); /* --fm-accent @ 0.06 */
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--fm-border-subtle);
+  position: sticky;
+  top: 0;
+  background: rgba(8, 16, 32, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2;
 }
 
 .roster-item {
-  padding: 0.7rem 0.8rem;
-  border-bottom: 1px solid rgba(196, 30, 58, 0.04); /* --fm-accent @ 0.04 */
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid rgba(196, 30, 58, 0.03);
   cursor: default;
-  transition: background 0.3s;
+  transition: background 0.25s ease;
 }
 
 .roster-item:hover,
 .roster-item.active {
-  background: rgba(196, 30, 58, 0.04); /* --fm-accent @ 0.04 */
+  background: rgba(196, 30, 58, 0.06);
 }
 
 .roster-item-name {
   font-family: var(--fm-font-display);
-  font-size: 0.75rem;
-  color: var(--fm-accent);
+  font-size: 0.82rem;
+  color: var(--fm-text);
   margin-bottom: 0.2rem;
+  line-height: 1.3;
 }
 
 .roster-item-status {
   display: inline-block;
-  padding: 0.1rem 0.4rem;
+  padding: 0.12rem 0.5rem;
   font-family: var(--fm-font-sans);
-  font-size: 0.42rem;
+  font-size: 0.5rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  border: 1px solid rgba(58, 107, 53, 0.3); /* --fm-land @ 0.3 */
+  border: 1px solid rgba(58, 107, 53, 0.25);
   color: var(--fm-land);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
+  border-radius: 1px;
 }
 
 .roster-item-status.status-fishing,
 .roster-item-status.status-scalloping {
-  border-color: rgba(196, 30, 58, 0.3); /* --fm-accent @ 0.3 */
+  border-color: rgba(196, 30, 58, 0.3);
   color: var(--fm-accent);
 }
 
 .roster-item-status.status-in-transit {
-  border-color: rgba(59, 169, 156, 0.3); /* Turquoise @ 0.3 */
+  border-color: rgba(59, 169, 156, 0.25);
   color: var(--fm-text-muted);
 }
 
 .roster-item-status.status-returning {
-  border-color: rgba(59, 169, 156, 0.3); /* Turquoise @ 0.3 */
+  border-color: rgba(59, 169, 156, 0.25);
   color: var(--fm-text-muted);
 }
 
 .roster-item-detail {
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.5rem;
-  letter-spacing: 0.1em;
+  font-weight: 300;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
   color: var(--fm-text-warm);
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .roster-item-catch {
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.45rem;
-  letter-spacing: 0.1em;
+  font-weight: 300;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
   color: var(--fm-text-warm);
-  opacity: 0.4;
+  opacity: 0.35;
   margin-top: 0.1rem;
 }
 
@@ -216,31 +223,30 @@
 .fleet-map {
   position: relative;
   flex: 1;
-  aspect-ratio: var(--fm-map-ratio);
-  max-height: 65vh;
-  border: 1px solid rgba(196, 30, 58, 0.12); /* --fm-accent @ 0.12 */
+  min-height: 0;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at center, var(--fm-ocean-mid), rgba(15, 27, 61, 0.95)),
+    radial-gradient(ellipse at 40% 50%, var(--fm-ocean-mid), rgba(10, 22, 40, 0.95)),
     var(--fm-deep);
 }
 
+/* Inner decorative border */
 .fleet-map::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border: 1px solid rgba(196, 30, 58, 0.06); /* --fm-accent @ 0.06 */
-  margin: 8px;
+  inset: 6px;
+  border: 1px solid rgba(196, 30, 58, 0.04);
   z-index: 6;
   pointer-events: none;
 }
 
+/* Noise texture */
 .fleet-map::after {
   content: '';
   position: absolute;
   inset: 0;
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity: 0.03;
+  opacity: 0.025;
   z-index: 7;
   pointer-events: none;
 }
@@ -273,16 +279,16 @@
 .vessel-info {
   position: absolute;
   z-index: 10;
-  background: rgba(15, 27, 61, 0.92);            /* --fm-deep @ 0.92 */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(196, 30, 58, 0.15);     /* --fm-accent @ 0.15 */
-  padding: 1rem 1.2rem;
-  min-width: 200px;
+  background: rgba(10, 22, 40, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(196, 30, 58, 0.18);
+  padding: 0.85rem 1.1rem;
+  min-width: 180px;
   pointer-events: none;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(6px);
+  transition: opacity 0.25s, transform 0.25s;
 }
 
 .vessel-info.active {
@@ -292,70 +298,84 @@
 
 .vessel-info h4 {
   font-family: var(--fm-font-display);
-  font-size: 0.95rem;
-  color: var(--fm-accent);
-  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--fm-text);
+  margin-bottom: 0.25rem;
 }
 
 .vessel-info p {
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
+  font-weight: 300;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
   color: var(--fm-text-warm);
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 .vessel-info .vi-status {
   display: inline-block;
-  padding: 0.15rem 0.5rem;
+  padding: 0.12rem 0.5rem;
   font-size: 0.5rem;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  border: 1px solid rgba(58, 107, 53, 0.3); /* --fm-land @ 0.3 */
+  border: 1px solid rgba(58, 107, 53, 0.3);
   color: var(--fm-land);
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
+  border-radius: 1px;
 }
 
 
 /* =============================================
-   Section 7: LEGEND & STATS
+   Section 7: LEGEND & STATS — integrated bar
    ============================================= */
+
+.fleet-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(8, 16, 32, 0.6);
+  border: 1px solid var(--fm-border);
+  border-top: none;
+  max-width: var(--fm-max-width);
+  margin: 0 auto;
+}
 
 .fleet-legend {
   display: flex;
-  gap: 2rem;
-  justify-content: center;
-  margin-top: 1.5rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .fleet-legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   font-family: var(--fm-font-sans);
-  font-weight: 200;
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
+  font-weight: 300;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--fm-text-warm);
+  opacity: 0.7;
 }
 
 .fleet-legend-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   border: 1px solid;
 }
 
 .dot-vessel {
-  background: rgba(196, 30, 58, 0.8); /* Lighthouse red @ 0.8 */
+  background: rgba(196, 30, 58, 0.7);
   border-color: var(--fm-accent);
 }
 
 .dot-port {
-  background: rgba(58, 107, 53, 0.8); /* Pine green @ 0.8 */
+  background: rgba(58, 107, 53, 0.7);
   border-color: var(--fm-land);
 }
 
@@ -363,7 +383,7 @@
   background: none;
   border-color: var(--fm-text-muted);
   border-style: dashed;
-  width: 20px;
+  width: 16px;
   height: 0;
   border-radius: 0;
 }
@@ -371,45 +391,63 @@
 .dot-fishing {
   background: none;
   border-color: var(--fm-accent);
-  box-shadow: 0 0 6px rgba(196, 30, 58, 0.3); /* Lighthouse red glow */
+  box-shadow: 0 0 5px rgba(196, 30, 58, 0.3);
 }
 
 .fleet-stats {
   display: flex;
-  gap: 2.5rem;
-  justify-content: center;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(196, 30, 58, 0.06); /* --fm-accent @ 0.06 */
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .fleet-stat {
   text-align: center;
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 
 .fleet-stat-n {
   font-family: var(--fm-font-sans);
   font-weight: 200;
-  font-size: 1.8rem;
+  font-size: 1.15rem;
   color: var(--fm-accent);
+  line-height: 1;
 }
 
 .fleet-stat-l {
   font-family: var(--fm-font-sans);
   font-weight: 300;
-  font-size: 0.55rem;
-  letter-spacing: 0.2em;
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--fm-text-warm);
-  margin-top: 0.2rem;
+  opacity: 0.5;
+}
+
+/* Divider between stats */
+.fleet-stat + .fleet-stat {
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--fm-border-subtle);
 }
 
 
 /* =============================================
-   Section 8: MOBILE RESPONSIVE
+   Section 8: RESPONSIVE
    ============================================= */
 
-@media (max-width: 900px) {
+/* Tablet */
+@media (max-width: 1100px) {
+  :root {
+    --fm-roster-width: 200px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .fleet-map-wrap {
+    padding: 0 0.5rem 1rem;
+  }
 
   .fleet-map-panel-wrap {
     flex-direction: column;
@@ -417,43 +455,108 @@
 
   .fleet-roster {
     width: 100%;
-    max-height: 25vh;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--fm-border-subtle);
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(196, 30, 58, 0.12) transparent;
+  }
+
+  .fleet-roster::-webkit-scrollbar {
+    height: 3px;
   }
 
   .fleet-roster-title {
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    padding: 0.8rem 0.4rem;
+    padding: 0.6rem 0.35rem;
     border-bottom: none;
-    border-right: 1px solid rgba(196, 30, 58, 0.06);
-    min-width: 28px;
+    border-right: 1px solid var(--fm-border-subtle);
+    min-width: 24px;
+    font-size: 0.5rem;
+    position: static;
   }
 
   .roster-item {
-    min-width: 140px;
+    min-width: 130px;
+    max-width: 160px;
     border-bottom: none;
-    border-right: 1px solid rgba(196, 30, 58, 0.04);
+    border-right: 1px solid rgba(196, 30, 58, 0.03);
+    padding: 0.5rem 0.7rem;
   }
 
+  .roster-item-name { font-size: 0.72rem; }
+  .roster-item-status { font-size: 0.44rem; }
+
   .fleet-map {
-    aspect-ratio: var(--fm-map-ratio-mobile);
-    max-height: 55vh;
+    min-height: 50vh;
+    min-height: 50dvh;
+  }
+
+  .fleet-bottom-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
   }
 
   .fleet-legend {
-    gap: 1rem;
+    gap: 0.8rem;
+  }
+
+  .fleet-legend-item {
+    font-size: 0.5rem;
   }
 
   .fleet-stats {
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
-  .fleet-stat-n {
-    font-size: 1.4rem;
+  .fleet-stat + .fleet-stat {
+    padding-left: 0.75rem;
   }
+
+  .fleet-stat-n { font-size: 1rem; }
+  .fleet-stat-l { font-size: 0.44rem; }
+}
+
+/* Small phones */
+@media (max-width: 420px) {
+  .fleet-map {
+    min-height: 45vh;
+    min-height: 45dvh;
+  }
+
+  .fleet-legend-item {
+    font-size: 0.45rem;
+    gap: 0.3rem;
+  }
+
+  .fleet-legend {
+    gap: 0.5rem;
+  }
+}
+
+/* Landscape / wide screens — fill the viewport */
+@media (min-aspect-ratio: 16/10) and (min-width: 1000px) {
+  .fleet-map-panel-wrap {
+    height: calc(100vh - 10rem);
+    height: calc(100dvh - 10rem);
+  }
+}
+
+/* Ultrawide */
+@media (min-width: 1800px) {
+  :root {
+    --fm-max-width: 1800px;
+    --fm-roster-width: 280px;
+  }
+
+  .roster-item-name { font-size: 0.88rem; }
+  .roster-item-status { font-size: 0.55rem; }
+  .roster-item-detail { font-size: 0.62rem; }
 }
