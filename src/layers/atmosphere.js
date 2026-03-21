@@ -57,9 +57,9 @@ export function drawAtmosphere(ctx, w, h, config) {
   var vignette = ctx.createRadialGradient(cx, cy, 0, cx, cy, cornerR);
   vignette.addColorStop(0.0, rgba(r, g, b, 0));
   vignette.addColorStop(0.4, rgba(r, g, b, 0));
-  vignette.addColorStop(0.7, rgba(r, g, b, 0.12));
-  vignette.addColorStop(0.85, rgba(r, g, b, 0.25));
-  vignette.addColorStop(1.0, rgba(r, g, b, 0.4));
+  vignette.addColorStop(0.7, rgba(r, g, b, 0.08));
+  vignette.addColorStop(0.85, rgba(r, g, b, 0.15));
+  vignette.addColorStop(1.0, rgba(r, g, b, 0.22));
 
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, w, h);
@@ -69,7 +69,7 @@ export function drawAtmosphere(ctx, w, h, config) {
   // ------------------------------------------------------------------
   var topH = h * 0.15;
   var topFog = ctx.createLinearGradient(0, 0, 0, topH);
-  topFog.addColorStop(0.0, rgba(r, g, b, 0.3));
+  topFog.addColorStop(0.0, rgba(r, g, b, 0.15));
   topFog.addColorStop(1.0, rgba(r, g, b, 0));
 
   ctx.fillStyle = topFog;
@@ -81,7 +81,7 @@ export function drawAtmosphere(ctx, w, h, config) {
   var botH    = h * 0.12;
   var botTop  = h - botH;
   var botFog  = ctx.createLinearGradient(0, h, 0, botTop);
-  botFog.addColorStop(0.0, rgba(r, g, b, 0.25));
+  botFog.addColorStop(0.0, rgba(r, g, b, 0.12));
   botFog.addColorStop(1.0, rgba(r, g, b, 0));
 
   ctx.fillStyle = botFog;

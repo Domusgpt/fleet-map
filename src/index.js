@@ -55,7 +55,9 @@ import { buildRoster } from './roster.js';
 import { setupInteraction } from './interaction.js';
 import { AISClient } from './ais.js';
 import { BRAZIL_COAST } from './data/brazil-coast.js';
+import { LBI_COAST } from './data/lbi-coast.js';
 import { SA_CURRENTS } from './data/currents-sa.js';
+import { NJ_CURRENTS } from './data/currents-nj.js';
 import { createDefaultRegistry } from './assets/registry.js';
 import { AssetRenderer } from './assets/renderer.js';
 import { NOAAClient } from './services/noaa.js';
@@ -119,6 +121,8 @@ export class FleetMap {
     // Resolve coast data
     if (this.config.coastData === 'brazil') {
       this.coastData = BRAZIL_COAST;
+    } else if (this.config.coastData === 'lbi') {
+      this.coastData = LBI_COAST;
     } else if (Array.isArray(this.config.coastData)) {
       this.coastData = this.config.coastData;
     } else {
@@ -128,6 +132,8 @@ export class FleetMap {
     // Resolve current flow data
     if (this.config.currentData === 'south-atlantic') {
       this.currentData = SA_CURRENTS;
+    } else if (this.config.currentData === 'nj-atlantic') {
+      this.currentData = NJ_CURRENTS;
     } else if (Array.isArray(this.config.currentData)) {
       this.currentData = this.config.currentData;
     } else {
@@ -140,8 +146,9 @@ export class FleetMap {
     // Init current particles
     this.particles = initParticles(this.config);
 
-    // Build roster panel
-    this.rosterEl = buildRoster(this.container, this.vessels, this.config);
+    // Build roster panel — search parent or document for #rosterList
+    var rosterScope = this.container.parentElement || document;
+    this.rosterEl = buildRoster(rosterScope, this.vessels, this.config);
 
     // Setup mouse/touch interaction
     this._interactionCleanup = setupInteraction(this.cm, this.vessels, this.config);
@@ -283,7 +290,8 @@ export class FleetMap {
 
     // Rebuild the roster panel
     if (this.container && this.config) {
-      this.rosterEl = buildRoster(this.container, this.vessels, this.config);
+      var rosterScope2 = this.container.parentElement || document;
+      this.rosterEl = buildRoster(rosterScope2, this.vessels, this.config);
     }
 
     // Update stats display
@@ -486,16 +494,16 @@ export class FleetMap {
 
     for (var i = 0; i < this.vessels.length; i++) {
       var status = (this.vessels[i].status || '').toLowerCase();
-      if (status === 'fishing') counts.fishing++;
+      if (status === 'fishing' || status === 'scalloping') counts.fishing++;
       else if (status === 'in transit') counts.transit++;
       else if (status === 'in port') counts.port++;
       else if (status === 'returning') counts.returning++;
     }
 
-    // Update stat elements if they exist
+    // Update stat elements if they exist (search document, not just container)
     var statKeys = ['total', 'fishing', 'transit', 'port', 'returning'];
     for (var j = 0; j < statKeys.length; j++) {
-      var el = this.container.querySelector('.fleet-stat-' + j);
+      var el = document.querySelector('.fleet-stat-' + j);
       if (el) {
         el.textContent = counts[statKeys[j]];
       }

@@ -122,8 +122,8 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
   // 3. Lat/Lon grid — every 5 degrees
   // ------------------------------------------------------------------
   ctx.strokeStyle = colors.grid;
-  ctx.lineWidth   = 1;
-  ctx.setLineDash([4, 8]);
+  ctx.lineWidth   = 0.5;
+  ctx.setLineDash([2, 6]);
 
   var lat, lon, p1, p2;
 
@@ -178,7 +178,7 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
   // 4. Depth contour lines (continental shelf)
   // ------------------------------------------------------------------
   ctx.strokeStyle = colors.fathom;
-  ctx.lineWidth   = 1;
+  ctx.lineWidth   = 1.2;
 
   // Draw 3 parallel contours, each offset further offshore
   for (var c = 0; c < 3; c++) {

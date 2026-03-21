@@ -65,13 +65,30 @@
   </div>
 
   <script type="module">
-    import { FleetMap } from './fleet-map.js';
+    import { FleetMap } from '../../src/index.js';
 
     var map = new FleetMap('#fleetMap', {
       title: 'Viking Village',
       subtitle: 'Est. 1927 \u00b7 Barnegat Light, NJ',
       bounds: { latN: 40.8, latS: 38.8, lonW: -74.35, lonE: -71.2 },
       lighthouse: { lat: 39.7644, lon: -74.1061 },
+      coastData: 'lbi',
+      currentData: 'nj-atlantic',
+
+      // Barnegat Lighthouse color palette
+      colors: {
+        deep:      'rgba(15,27,61,1)',
+        ouro:      'rgba(196,30,58,1)',
+        verde:     'rgba(58,107,53,1)',
+        blade:     'rgba(59,169,156,1)',
+        creme:     'rgba(212,184,150,1)',
+        land:      ['rgba(42,71,38,0.7)', 'rgba(58,107,53,0.5)', 'rgba(72,95,52,0.4)'],
+        ocean:     ['rgba(15,35,70,0.35)', 'rgba(12,28,55,0.2)', 'rgba(15,27,61,0.05)'],
+        fathom:    'rgba(59,169,156,0.25)',
+        grid:      'rgba(212,184,150,0.07)',
+        coastGlow: 'rgba(196,30,58,0.18)',
+        coastLine: 'rgba(196,30,58,0.55)',
+      },
 
       vessels: [
         { name: 'F/V Karen L',          mmsi: null, lat: 39.85, lon: -73.65, heading: 135, speed: 4.2, type: 'Scalloper',          status: 'Scalloping', catch: 'Sea Scallops' },

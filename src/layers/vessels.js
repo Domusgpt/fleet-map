@@ -132,7 +132,7 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
       ctx.lineTo(v.trail[ti].x, v.trail[ti].y);
     }
 
-    ctx.strokeStyle = colors.ouro.replace(/[\d.]+\)$/, '0.15)');
+    ctx.strokeStyle = colors.ouro.replace(/[\d.]+\)$/, '0.25)');
     ctx.lineWidth   = 1.5;
     ctx.globalAlpha = 1;
     ctx.stroke();
@@ -182,9 +182,9 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
 
       // Triangle: tip at top, base at bottom
       ctx.beginPath();
-      ctx.moveTo(0, -5);
-      ctx.lineTo(-3, 4);
-      ctx.lineTo(3, 4);
+      ctx.moveTo(0, -8);
+      ctx.lineTo(-5, 6);
+      ctx.lineTo(5, 6);
       ctx.closePath();
 
       ctx.fillStyle = vesselColor;
@@ -203,8 +203,8 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
     // ------------------------------------------------------------------
     var phase = (t * 0.8 + i * 0.5) % 2;
     if (phase < 1) {
-      var pingR     = 4 + phase * 12;
-      var pingAlpha = (1 - phase) * 0.5;
+      var pingR     = 6 + phase * 16;
+      var pingAlpha = (1 - phase) * 0.7;
 
       ctx.beginPath();
       ctx.arc(sp.x, sp.y, pingR, 0, TAU);
@@ -216,12 +216,12 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
     // ------------------------------------------------------------------
     // 6. Name labels
     // ------------------------------------------------------------------
-    var nameFontSize = Math.max(8, Math.round(w * 0.007));
+    var nameFontSize = Math.max(9, Math.round(w * 0.009));
     ctx.font         = nameFontSize + 'px ' + fonts.sans;
-    ctx.fillStyle    = colors.creme.replace(/[\d.]+\)$/, '0.3)');
+    ctx.fillStyle    = colors.creme.replace(/[\d.]+\)$/, '0.55)');
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(v.name, sp.x, sp.y + 8);
+    ctx.fillText(v.name, sp.x, sp.y + 11);
   }
 
   // ------------------------------------------------------------------
@@ -239,8 +239,8 @@ function drawCompassRose(ctx, w, h, config, t) {
 
   var cx     = w - 60;
   var cy     = h - 60;
-  var outerR = 35;
-  var innerR = 14;
+  var outerR = 42;
+  var innerR = 16;
   var tickR  = outerR + 6;
 
   var wobble = Math.sin(t * 0.3) * 0.05;
@@ -248,7 +248,7 @@ function drawCompassRose(ctx, w, h, config, t) {
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(wobble);
-  ctx.globalAlpha = 0.2;
+  ctx.globalAlpha = 0.35;
 
   // Outer circle
   ctx.beginPath();
@@ -300,12 +300,12 @@ function drawCompassRose(ctx, w, h, config, t) {
     ctx.closePath();
 
     ctx.fillStyle = isMain ? colors.ouro : colors.creme;
-    ctx.globalAlpha = isMain ? 0.2 : 0.1;
+    ctx.globalAlpha = isMain ? 0.3 : 0.15;
     ctx.fill();
   }
 
   // Cardinal letters N, S, E, W
-  ctx.globalAlpha = 0.25;
+  ctx.globalAlpha = 0.4;
   var letterR     = tickR + 8;
   var letterSize  = Math.max(8, Math.round(w * 0.008));
   ctx.font         = letterSize + 'px ' + fonts.sans;

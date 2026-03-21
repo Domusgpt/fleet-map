@@ -126,13 +126,13 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
   // Outer glow
   traceCoast(ctx, coastData, projFn);
   ctx.strokeStyle = colors.coastGlow;
-  ctx.lineWidth   = 6;
+  ctx.lineWidth   = 10;
   ctx.stroke();
 
   // Crisp line
   traceCoast(ctx, coastData, projFn);
   ctx.strokeStyle = colors.coastLine;
-  ctx.lineWidth   = 1.5;
+  ctx.lineWidth   = 2;
   ctx.stroke();
 
   // ------------------------------------------------------------------
@@ -182,7 +182,7 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
       if (!rPts || rPts.length < 2) continue;
 
       ctx.strokeStyle  = colors.blade;
-      ctx.globalAlpha  = 0.2;
+      ctx.globalAlpha  = 0.35;
       ctx.lineDashOffset = -t * 30;
 
       ctx.beginPath();
@@ -199,7 +199,7 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
       var rlp      = projFn(rPts[labelIdx][0], rPts[labelIdx][1]);
       ctx.font      = Math.max(9, Math.round(w * 0.009)) + 'px ' + fonts.sans;
       ctx.fillStyle = colors.blade;
-      ctx.globalAlpha = 0.25;
+      ctx.globalAlpha = 0.45;
       ctx.textAlign    = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillText('\u2192 ' + route.name, rlp.x + 6, rlp.y);
@@ -214,7 +214,7 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
   // 5. Ports
   // ------------------------------------------------------------------
   if (ports && ports.length) {
-    var portFontSize = Math.max(9, Math.round(w * 0.009));
+    var portFontSize = Math.max(10, Math.round(w * 0.012));
     var theme = (renderer && renderer.theme) || null;
     var pulseSpeed = (theme && theme.symbols && theme.symbols.port && theme.symbols.port.pulseSpeed !== undefined)
       ? theme.symbols.port.pulseSpeed : 2.5;
@@ -278,36 +278,18 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
     var ch  = config.subtitle ? 68 : 48;
     var pad = 14;
 
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.35;
 
-    // Outer border
+    // Single clean border
     ctx.strokeStyle = colors.ouro;
-    ctx.lineWidth   = 1.5;
+    ctx.lineWidth   = 1;
     ctx.strokeRect(cx, cy, cw, ch);
-
-    // Inner border (double-line effect)
-    ctx.lineWidth = 0.5;
-    ctx.strokeRect(cx + 4, cy + 4, cw - 8, ch - 8);
-
-    // Corner ornaments — small diagonal ticks
-    var tickLen = 6;
-    ctx.beginPath();
-    // top-left
-    ctx.moveTo(cx, cy + tickLen);       ctx.lineTo(cx, cy);       ctx.lineTo(cx + tickLen, cy);
-    // top-right
-    ctx.moveTo(cx + cw - tickLen, cy);  ctx.lineTo(cx + cw, cy);  ctx.lineTo(cx + cw, cy + tickLen);
-    // bottom-left
-    ctx.moveTo(cx, cy + ch - tickLen);  ctx.lineTo(cx, cy + ch);  ctx.lineTo(cx + tickLen, cy + ch);
-    // bottom-right
-    ctx.moveTo(cx + cw - tickLen, cy + ch); ctx.lineTo(cx + cw, cy + ch); ctx.lineTo(cx + cw, cy + ch - tickLen);
-    ctx.lineWidth = 2;
-    ctx.stroke();
 
     // Title text
     var titleSize = Math.max(13, Math.round(cw * 0.07));
     ctx.font         = titleSize + 'px ' + fonts.display;
-    ctx.fillStyle    = colors.ouro;
-    ctx.globalAlpha  = 0.6;
+    ctx.fillStyle    = colors.creme;
+    ctx.globalAlpha  = 0.5;
     ctx.textAlign    = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText(config.title, cx + pad, cy + pad);
