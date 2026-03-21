@@ -64,9 +64,15 @@ export class CanvasManager {
           canvas.style.top = '0';
           canvas.style.left = '0';
           canvas.style.pointerEvents = 'none';
-          // Insert before the first existing canvas to maintain z-order
+          // Insert before the vessels canvas to maintain correct z-order
+          // (markers and weather should be between coast and vessels)
           var mapArea = container.querySelector('.fleet-map-area') || container;
-          mapArea.appendChild(canvas);
+          var vesselCanvas = mapArea.querySelector('#fleetCanvasVessels');
+          if (vesselCanvas) {
+            mapArea.insertBefore(canvas, vesselCanvas);
+          } else {
+            mapArea.appendChild(canvas);
+          }
         } else {
           throw new Error('FleetMap: missing canvas #' + canvasId);
         }
