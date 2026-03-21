@@ -58,17 +58,43 @@ function traceCoast(ctx, coastData, projFn) {
 /**
  * Draw the coast layer.
  *
+ * Supports two call signatures:
+ *   drawCoast(ctx, cm, coastData, ports, routes, config, t)         — CanvasManager style
+ *   drawCoast(ctx, w, h, projFn, config, t, coastData, ports, routes) — explicit style
+ *
  * @param {CanvasRenderingContext2D} ctx
- * @param {number}   w          — logical canvas width
- * @param {number}   h          — logical canvas height
- * @param {function} projFn     — projFn(lat, lon) => { x, y }
- * @param {object}   config     — merged FleetMap config
- * @param {number}   t          — animation time counter
- * @param {Array}    coastData  — [[lat,lon], ...] coastline points
- * @param {Array}    ports      — [{ name, lat, lon, size }, ...]
- * @param {Array}    routes     — [{ name, points: [[lat,lon],...] }, ...]
+ * @param {CanvasManager|number} cmOrW
+ * @param {Array|number} coastDataOrH
+ * @param {Array|function} portsOrProjFn
+ * @param {Array|object} routesOrConfig
+ * @param {object|number} configOrT
+ * @param {number} [tOrCoastData]
  */
-export function drawCoast(ctx, w, h, projFn, config, t, coastData, ports, routes) {
+export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfig, configOrT, tOrCoastData) {
+  var w, h, projFn, config, t, coastData, ports, routes;
+
+  if (typeof cmOrW === 'object' && cmOrW.w !== undefined) {
+    // CanvasManager style: (ctx, cm, coastData, ports, routes, config, t)
+    w = cmOrW.w;
+    h = cmOrW.h;
+    projFn = cmOrW.proj.bind(cmOrW);
+    coastData = coastDataOrH;
+    ports = portsOrProjFn;
+    routes = routesOrConfig;
+    config = configOrT;
+    t = tOrCoastData;
+  } else {
+    // Explicit style: (ctx, w, h, projFn, config, t, coastData, ports, routes)
+    w = cmOrW;
+    h = coastDataOrH;
+    projFn = portsOrProjFn;
+    config = routesOrConfig;
+    t = configOrT;
+    coastData = tOrCoastData;
+    ports = arguments[7];
+    routes = arguments[8];
+  }
+
   var colors = config.colors;
   var fonts  = config.fonts;
 

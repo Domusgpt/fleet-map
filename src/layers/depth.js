@@ -65,14 +65,33 @@ function lonLabel(deg) {
 /**
  * Draw the depth layer: ocean gradient, lat/lon grid, and fathom contours.
  *
- * @param {CanvasRenderingContext2D} ctx   — canvas context
- * @param {number}   w       — logical canvas width
- * @param {number}   h       — logical canvas height
- * @param {function} projFn  — projFn(lat, lon) => { x, y }
- * @param {object}   config  — merged FleetMap config
- * @param {number}   t       — animation time (radians-ish counter)
+ * Supports two call signatures:
+ *   drawDepth(ctx, cm, config)                    — CanvasManager style
+ *   drawDepth(ctx, w, h, projFn, config, t)       — explicit style
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {CanvasManager|number} cmOrW
+ * @param {object|number} configOrH
  */
-export function drawDepth(ctx, w, h, projFn, config, t) {
+export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
+  var w, h, projFn, config, t;
+
+  if (typeof cmOrW === 'object' && cmOrW.w !== undefined) {
+    // CanvasManager style: (ctx, cm, config)
+    w = cmOrW.w;
+    h = cmOrW.h;
+    projFn = cmOrW.proj.bind(cmOrW);
+    config = configOrH;
+    t = 0;
+  } else {
+    // Explicit style: (ctx, w, h, projFn, config, t)
+    w = cmOrW;
+    h = configOrH;
+    projFn = projFnArg;
+    config = configArg;
+    t = tArg || 0;
+  }
+
   var colors = config.colors;
   var fonts  = config.fonts;
   var bounds = config.bounds;

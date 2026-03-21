@@ -38,15 +38,37 @@ function statusColor(colors, status, alpha) {
  * Draw the vessels layer.
  *
  * @param {CanvasRenderingContext2D} ctx     — canvas context
- * @param {number}   w       — logical canvas width
- * @param {number}   h       — logical canvas height
- * @param {function} projFn  — projFn(lat, lon) => { x, y }
+ * @param {CanvasManager|number} cmOrW      — canvas manager or width
+ * @param {Array|number}  vesselsOrH        — vessels array or height
  * @param {object}   config  — merged FleetMap config
  * @param {number}   t       — animation time counter
- * @param {Array}    vessels — array of vessel objects
  * @param {object}   [renderer] — AssetRenderer instance (optional)
+ *
+ * Supports two call signatures:
+ *   drawVessels(ctx, cm, vessels, config, t, renderer)      — CanvasManager style
+ *   drawVessels(ctx, w, h, projFn, config, t, vessels, renderer) — explicit style
  */
-export function drawVessels(ctx, w, h, projFn, config, t, vessels, renderer) {
+export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
+  var w, h, projFn, vessels;
+
+  // Detect call signature
+  if (typeof cmOrW === 'object' && cmOrW.w !== undefined) {
+    // CanvasManager style: (ctx, cm, vessels, config, t, renderer)
+    w = cmOrW.w;
+    h = cmOrW.h;
+    projFn = cmOrW.proj.bind(cmOrW);
+    vessels = vesselsOrH;
+  } else {
+    // Explicit style: (ctx, w, h, projFn, config, t, vessels, renderer)
+    w = cmOrW;
+    h = vesselsOrH;
+    projFn = config;
+    config = t;
+    t = renderer;
+    vessels = arguments[6];
+    renderer = arguments[7];
+  }
+
   var colors = config.colors;
   var fonts  = config.fonts;
 
