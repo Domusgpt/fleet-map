@@ -401,6 +401,8 @@ export class FleetMap {
     var cm = this.cm;
     if (!cm) return;
 
+    try {
+
     // --- Static layers: only redraw when dirty ---
 
     var depthLayer = cm.getLayer('depth');
@@ -444,6 +446,23 @@ export class FleetMap {
 
     var vesselLayer = cm.getLayer('vessels');
     drawVessels(vesselLayer.ctx, cm, this.vessels, this.config, t, this.renderer);
+
+    } catch (err) {
+      // Render error to the depth canvas so we can see what went wrong
+      var errCtx = cm.getLayer('depth').ctx;
+      errCtx.fillStyle = 'rgba(0,0,0,0.85)';
+      errCtx.fillRect(0, 0, cm.w, cm.h);
+      errCtx.fillStyle = '#ff4444';
+      errCtx.font = '14px monospace';
+      errCtx.fillText('RENDER ERROR: ' + err.message, 20, 30);
+      errCtx.fillStyle = '#ffaa44';
+      errCtx.font = '11px monospace';
+      var stack = (err.stack || '').split('\n');
+      for (var si = 0; si < Math.min(stack.length, 10); si++) {
+        errCtx.fillText(stack[si], 20, 50 + si * 16);
+      }
+      cm.stopLoop();
+    }
 
     // --- Simulated vessel drift (when no AIS endpoint) ---
 
