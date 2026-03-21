@@ -71,10 +71,10 @@ function traceCoast(ctx, coastData, projFn) {
  * @param {number} [tOrCoastData]
  */
 export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfig, configOrT, tOrCoastData) {
-  var w, h, projFn, config, t, coastData, ports, routes;
+  var w, h, projFn, config, t, coastData, ports, routes, renderer;
 
   if (typeof cmOrW === 'object' && cmOrW.w !== undefined) {
-    // CanvasManager style: (ctx, cm, coastData, ports, routes, config, t)
+    // CanvasManager style: (ctx, cm, coastData, ports, routes, config, t, renderer?)
     w = cmOrW.w;
     h = cmOrW.h;
     projFn = cmOrW.proj.bind(cmOrW);
@@ -83,8 +83,9 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
     routes = routesOrConfig;
     config = configOrT;
     t = tOrCoastData;
+    renderer = arguments[7] || null;
   } else {
-    // Explicit style: (ctx, w, h, projFn, config, t, coastData, ports, routes)
+    // Explicit style: (ctx, w, h, projFn, config, t, coastData, ports, routes, renderer?)
     w = cmOrW;
     h = coastDataOrH;
     projFn = portsOrProjFn;
@@ -93,6 +94,7 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
     coastData = tOrCoastData;
     ports = arguments[7];
     routes = arguments[8];
+    renderer = arguments[9] || null;
   }
 
   var colors = config.colors;
@@ -213,6 +215,9 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
   // ------------------------------------------------------------------
   if (ports && ports.length) {
     var portFontSize = Math.max(9, Math.round(w * 0.009));
+    var theme = (renderer && renderer.theme) || null;
+    var pulseSpeed = (theme && theme.symbols && theme.symbols.port && theme.symbols.port.pulseSpeed !== undefined)
+      ? theme.symbols.port.pulseSpeed : 2.5;
 
     for (var pi = 0; pi < ports.length; pi++) {
       var port   = ports[pi];
@@ -220,23 +225,34 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
       var major  = port.size === 'major';
       var radius = major ? 5 : 3;
 
-      // Pulse ring for major ports
-      if (major) {
-        var pulse = Math.sin(t * 2.5) * 0.5 + 0.5; // 0-1
-        ctx.beginPath();
-        ctx.arc(pp.x, pp.y, radius + 4 + pulse * 6, 0, Math.PI * 2);
-        ctx.strokeStyle = colors.verde;
-        ctx.globalAlpha = 0.15 * (1 - pulse);
-        ctx.lineWidth   = 1;
-        ctx.stroke();
-      }
+      if (renderer) {
+        // Use asset renderer for proper port symbols
+        renderer.drawPort(ctx, port, pp, {
+          t: t,
+          colors: colors,
+          fonts: fonts,
+          w: w,
+        });
+      } else {
+        // Fallback: simple dot rendering
+        // Pulse ring for major ports
+        if (major && pulseSpeed > 0) {
+          var pulse = Math.sin(t * pulseSpeed) * 0.5 + 0.5;
+          ctx.beginPath();
+          ctx.arc(pp.x, pp.y, radius + 4 + pulse * 6, 0, Math.PI * 2);
+          ctx.strokeStyle = colors.verde;
+          ctx.globalAlpha = 0.15 * (1 - pulse);
+          ctx.lineWidth   = 1;
+          ctx.stroke();
+        }
 
-      // Port dot
-      ctx.beginPath();
-      ctx.arc(pp.x, pp.y, radius, 0, Math.PI * 2);
-      ctx.fillStyle   = colors.verde;
-      ctx.globalAlpha = 0.85;
-      ctx.fill();
+        // Port dot
+        ctx.beginPath();
+        ctx.arc(pp.x, pp.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle   = colors.verde;
+        ctx.globalAlpha = 0.85;
+        ctx.fill();
+      }
 
       // Port label
       ctx.font         = portFontSize + 'px ' + fonts.sans;

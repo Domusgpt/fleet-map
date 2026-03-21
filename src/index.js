@@ -403,7 +403,7 @@ export class FleetMap {
 
     var coastLayer = cm.getLayer('coast');
     if (coastLayer.dirty) {
-      drawCoast(coastLayer.ctx, cm, this.coastData, this.ports, this.routes, this.config, t);
+      drawCoast(coastLayer.ctx, cm, this.coastData, this.ports, this.routes, this.config, t, this.renderer);
       coastLayer.dirty = false;
     }
 

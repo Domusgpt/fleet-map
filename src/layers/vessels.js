@@ -72,6 +72,12 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
   var colors = config.colors;
   var fonts  = config.fonts;
 
+  // Theme-aware properties
+  var theme = (renderer && renderer.theme) || null;
+  var vesselSymbols = (theme && theme.symbols && theme.symbols.vessel) || {};
+  var glowRadius = vesselSymbols.glowRadius !== undefined ? vesselSymbols.glowRadius : 32;
+  var trailStyle = vesselSymbols.trailStyle || 'line';
+
   // ------------------------------------------------------------------
   // 1. Clear canvas (transparent)
   // ------------------------------------------------------------------
@@ -87,12 +93,13 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
   // ------------------------------------------------------------------
   // 2. Fishing zone halos
   // ------------------------------------------------------------------
+  if (glowRadius > 0) {
   for (i = 0; i < vessels.length; i++) {
     v = vessels[i];
     if (v.status !== 'Fishing') continue;
 
     sp = projFn(v.lat, v.lon);
-    var haloRadius = 32 + Math.sin(t * 1.5 + i) * 6;
+    var haloRadius = glowRadius + Math.sin(t * 1.5 + i) * 6;
 
     var haloGrad = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, haloRadius);
     haloGrad.addColorStop(0, colors.ouro.replace(/[\d.]+\)$/, '0.08)'));
@@ -103,10 +110,12 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
     ctx.arc(sp.x, sp.y, haloRadius, 0, TAU);
     ctx.fill();
   }
+  } // end glowRadius > 0
 
   // ------------------------------------------------------------------
   // 3. Wake trails
   // ------------------------------------------------------------------
+  if (trailStyle !== 'none') {
   for (i = 0; i < vessels.length; i++) {
     v = vessels[i];
     if (!v.trail || v.trail.length < 2) continue;
@@ -115,6 +124,10 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
     var tp0 = v.trail[0];
     ctx.moveTo(tp0.x, tp0.y);
 
+    if (trailStyle === 'dotted') {
+      ctx.setLineDash([2, 4]);
+    }
+
     for (var ti = 1; ti < v.trail.length; ti++) {
       ctx.lineTo(v.trail[ti].x, v.trail[ti].y);
     }
@@ -122,10 +135,13 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
     ctx.strokeStyle = colors.ouro.replace(/[\d.]+\)$/, '0.15)');
     ctx.lineWidth   = 1.5;
     ctx.globalAlpha = 1;
-
-    // Create fading effect along the trail
     ctx.stroke();
+
+    if (trailStyle === 'dotted') {
+      ctx.setLineDash([]);
+    }
   }
+  } // end trailStyle !== 'none'
 
   // ------------------------------------------------------------------
   // 4. Vessel triangles
