@@ -400,6 +400,8 @@ html, body {
   .roster {
     width: 100%;
     flex-shrink: 0;
+    max-height: 72px;
+    overflow: hidden;
     border-right: none;
     border-bottom: 1px solid var(--c-border);
   }
@@ -436,7 +438,7 @@ html, body {
 
   .map {
     flex: 1;
-    min-height: 0;
+    min-height: 200px;
   }
 }
 
