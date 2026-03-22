@@ -177,6 +177,268 @@ export class FleetMap {
     // State
     this.started = false;
     this._resizeBound = this.resize.bind(this);
+
+    // Zoom state
+    this._baseBounds = {
+      latN: this.config.bounds.latN,
+      latS: this.config.bounds.latS,
+      lonW: this.config.bounds.lonW,
+      lonE: this.config.bounds.lonE,
+    };
+    this._zoom = {
+      active: false,
+      progress: 0,
+      duration: 0.65, // in animation time units (~1.35 real seconds at 60fps)
+      startTime: 0,
+      direction: 'in', // 'in' or 'out'
+      vessel: null,
+      fromBounds: null,
+      toBounds: null,
+    };
+    this._zoomedVessel = null;
+    this._detailCard = null;
+
+    // Wire up zoom callbacks
+    var zoomSelf = this;
+    this.config.onVesselZoom = function (vessel) {
+      zoomSelf.zoomToVessel(vessel);
+    };
+    this.config.onMapZoomOut = function () {
+      zoomSelf.zoomOut();
+    };
+  }
+
+  /**
+   * Cinematic zoom to a vessel. Double-tap a vessel to invoke.
+   * @param {object} vessel — vessel object with lat/lon
+   */
+  zoomToVessel(vessel) {
+    if (!vessel || !this.cm) return;
+
+    // If already zoomed to this vessel, zoom out instead
+    if (this._zoomedVessel && this._zoomedVessel.name === vessel.name) {
+      this.zoomOut();
+      return;
+    }
+
+    // Calculate zoomed bounds (5x zoom centered on vessel)
+    var latRange = this._baseBounds.latN - this._baseBounds.latS;
+    var lonRange = this._baseBounds.lonE - this._baseBounds.lonW;
+    var zoomFactor = 5;
+    var halfLat = (latRange / zoomFactor) * 0.5;
+    var halfLon = (lonRange / zoomFactor) * 0.5;
+
+    var targetBounds = {
+      latN: vessel.lat + halfLat,
+      latS: vessel.lat - halfLat,
+      lonW: vessel.lon - halfLon,
+      lonE: vessel.lon + halfLon,
+    };
+
+    // Start zoom animation
+    this._zoom.active = true;
+    this._zoom.progress = 0;
+    this._zoom.startTime = this.cm.t;
+    this._zoom.direction = 'in';
+    this._zoom.vessel = vessel;
+    this._zoom.fromBounds = {
+      latN: this.config.bounds.latN,
+      latS: this.config.bounds.latS,
+      lonW: this.config.bounds.lonW,
+      lonE: this.config.bounds.lonE,
+    };
+    this._zoom.toBounds = targetBounds;
+    this._zoomedVessel = vessel;
+
+    // Hide the hover tooltip during zoom
+    var tooltip = this.container.querySelector('#vesselInfo');
+    if (tooltip) tooltip.classList.remove('active');
+  }
+
+  /**
+   * Zoom back to the full map view.
+   */
+  zoomOut() {
+    if (!this._zoomedVessel || !this.cm) return;
+
+    this._zoom.active = true;
+    this._zoom.progress = 0;
+    this._zoom.startTime = this.cm.t;
+    this._zoom.direction = 'out';
+    this._zoom.fromBounds = {
+      latN: this.config.bounds.latN,
+      latS: this.config.bounds.latS,
+      lonW: this.config.bounds.lonW,
+      lonE: this.config.bounds.lonE,
+    };
+    this._zoom.toBounds = {
+      latN: this._baseBounds.latN,
+      latS: this._baseBounds.latS,
+      lonW: this._baseBounds.lonW,
+      lonE: this._baseBounds.lonE,
+    };
+
+    this._hideDetailCard();
+    this._zoomedVessel = null;
+  }
+
+  /**
+   * Create the vessel detail card DOM element.
+   * @private
+   */
+  _createDetailCard() {
+    if (this._detailCard) return this._detailCard;
+
+    var card = document.createElement('div');
+    card.className = 'vessel-detail-card';
+    card.innerHTML = '<div class="vdc-close">\u00d7</div>' +
+      '<div class="vdc-photo"><div class="vdc-photo-placeholder"></div></div>' +
+      '<div class="vdc-content">' +
+        '<h3 class="vdc-name"></h3>' +
+        '<div class="vdc-type"></div>' +
+        '<div class="vdc-stats">' +
+          '<div class="vdc-stat"><span class="vdc-stat-label">Speed</span><span class="vdc-stat-value vdc-speed"></span></div>' +
+          '<div class="vdc-stat"><span class="vdc-stat-label">Heading</span><span class="vdc-stat-value vdc-heading"></span></div>' +
+          '<div class="vdc-stat"><span class="vdc-stat-label">Catch</span><span class="vdc-stat-value vdc-catch"></span></div>' +
+        '</div>' +
+        '<span class="vdc-status"></span>' +
+        '<div class="vdc-coords"></div>' +
+      '</div>';
+
+    // Close button
+    var closeSelf = this;
+    card.querySelector('.vdc-close').addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeSelf.zoomOut();
+    });
+
+    this.container.appendChild(card);
+    this._detailCard = card;
+    return card;
+  }
+
+  /**
+   * Show the vessel detail card with vessel info.
+   * @param {object} vessel
+   * @private
+   */
+  _showDetailCard(vessel) {
+    var card = this._createDetailCard();
+    var colors = this.config.colors;
+
+    // Update content
+    card.querySelector('.vdc-name').textContent = vessel.name;
+    card.querySelector('.vdc-type').textContent = vessel.type || 'Vessel';
+
+    card.querySelector('.vdc-speed').textContent = (vessel.speed || 0) + ' kts';
+    card.querySelector('.vdc-heading').textContent = Math.round(vessel.heading || 0) + '\u00b0';
+
+    var catchVal = vessel.catch && vessel.catch !== '\u2014' ? vessel.catch : 'None';
+    card.querySelector('.vdc-catch').textContent = catchVal;
+
+    var statusEl = card.querySelector('.vdc-status');
+    statusEl.textContent = vessel.status || '';
+    statusEl.className = 'vdc-status';
+    var statusClass = (vessel.status || '').toLowerCase().replace(/\s+/g, '-');
+    statusEl.classList.add('vdc-status-' + statusClass);
+
+    // Coordinates
+    var latDir = vessel.lat >= 0 ? 'N' : 'S';
+    var lonDir = vessel.lon >= 0 ? 'E' : 'W';
+    card.querySelector('.vdc-coords').textContent =
+      Math.abs(vessel.lat).toFixed(4) + '\u00b0' + latDir + '  ' +
+      Math.abs(vessel.lon).toFixed(4) + '\u00b0' + lonDir;
+
+    // Photo placeholder — show vessel initial in a styled circle
+    var photoArea = card.querySelector('.vdc-photo-placeholder');
+    var initial = (vessel.name || 'V').replace(/^F\/V\s*/i, '').charAt(0).toUpperCase();
+    photoArea.textContent = initial;
+    photoArea.style.background = '';
+    photoArea.style.backgroundSize = '';
+
+    // If vessel has an image URL, use it
+    if (vessel.image) {
+      var img = new Image();
+      var imgUrl = vessel.image;
+      img.onload = function () {
+        photoArea.textContent = '';
+        photoArea.style.background = 'url(' + imgUrl + ') center/cover no-repeat';
+      };
+      img.src = vessel.image;
+    }
+
+    // Animate in
+    card.classList.add('active');
+  }
+
+  /**
+   * Hide the vessel detail card.
+   * @private
+   */
+  _hideDetailCard() {
+    if (this._detailCard) {
+      this._detailCard.classList.remove('active');
+    }
+  }
+
+  /**
+   * Update zoom animation each frame. Returns true if zoom is animating.
+   * @param {number} t — current time
+   * @private
+   */
+  _updateZoom(t) {
+    if (!this._zoom.active) return false;
+
+    var elapsed = t - this._zoom.startTime;
+    var progress = Math.min(1, elapsed / this._zoom.duration);
+
+    // Easing: ease-out-back for zoom in, ease-in-out for zoom out
+    var eased;
+    if (this._zoom.direction === 'in') {
+      // Ease out with slight overshoot then settle
+      var c1 = 1.2;
+      var c3 = c1 + 1;
+      eased = 1 + c3 * Math.pow(progress - 1, 3) + c1 * Math.pow(progress - 1, 2);
+    } else {
+      // Smooth ease-in-out for zoom out
+      eased = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    }
+
+    // Clamp
+    if (eased < 0) eased = 0;
+    if (eased > 1.02) eased = 1.02; // allow slight overshoot
+
+    // Interpolate bounds
+    var from = this._zoom.fromBounds;
+    var to = this._zoom.toBounds;
+    this.config.bounds.latN = from.latN + (to.latN - from.latN) * eased;
+    this.config.bounds.latS = from.latS + (to.latS - from.latS) * eased;
+    this.config.bounds.lonW = from.lonW + (to.lonW - from.lonW) * eased;
+    this.config.bounds.lonE = from.lonE + (to.lonE - from.lonE) * eased;
+
+    // Mark all layers dirty during zoom
+    this._drawStatic();
+
+    if (progress >= 1) {
+      // Animation complete — snap to exact target
+      this.config.bounds.latN = to.latN;
+      this.config.bounds.latS = to.latS;
+      this.config.bounds.lonW = to.lonW;
+      this.config.bounds.lonE = to.lonE;
+      this._zoom.active = false;
+
+      // Show detail card when zoom-in completes
+      if (this._zoom.direction === 'in' && this._zoom.vessel) {
+        this._showDetailCard(this._zoom.vessel);
+      }
+
+      // Final static redraw
+      this._drawStatic();
+    }
+
+    return true;
   }
 
   /**
@@ -262,6 +524,14 @@ export class FleetMap {
       this.noaaClient.stop();
       this.noaaClient = null;
     }
+
+    // Remove detail card
+    if (this._detailCard && this._detailCard.parentNode) {
+      this._detailCard.parentNode.removeChild(this._detailCard);
+    }
+    this._detailCard = null;
+    this._zoomedVessel = null;
+    this._zoom = null;
 
     this.vessels = null;
     this.ports = null;
@@ -404,6 +674,9 @@ export class FleetMap {
     if (cm.w < 1 || cm.h < 1) return;
 
     try {
+
+    // --- Zoom animation ---
+    this._updateZoom(this.cm.t);
 
     // --- Static layers: only redraw when dirty ---
 

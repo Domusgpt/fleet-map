@@ -5,6 +5,7 @@
  *   - Hover detection over vessel triangles
  *   - Tooltip positioning and content
  *   - Roster item highlighting on hover
+ *   - Double-tap / double-click for cinematic vessel zoom
  *   - Click callbacks
  *
  * Returns a cleanup function for proper teardown on destroy().
@@ -13,6 +14,8 @@
 import { highlightRosterItem, clearRosterHighlight } from './roster.js';
 
 var HIT_RADIUS = 18;
+var DOUBLE_TAP_DELAY = 350; // ms between taps to count as double-tap
+var DOUBLE_TAP_RADIUS = 30; // px tolerance for second tap position
 
 /**
  * Find the nearest vessel within HIT_RADIUS of (mx, my).
@@ -61,6 +64,11 @@ export function setupInteraction(container, vessels, config) {
     ? container
     : container.querySelector('.fleet-map') || container;
 
+  // Double-tap state
+  var lastTapTime = 0;
+  var lastTapX = 0;
+  var lastTapY = 0;
+
   // ---- Mousemove ----
   function onMousemove(e) {
     var rect = mapEl.getBoundingClientRect();
@@ -99,6 +107,7 @@ export function setupInteraction(container, vessels, config) {
       }
 
       highlightRosterItem(container, hit.index);
+      mapEl.style.cursor = 'pointer';
 
       if (typeof config.onVesselHover === 'function') {
         config.onVesselHover(hit.vessel, { x: mx, y: my });
@@ -107,6 +116,7 @@ export function setupInteraction(container, vessels, config) {
       // No hit — hide tooltip and clear roster highlight
       if (tooltip) tooltip.classList.remove('active');
       clearRosterHighlight(container);
+      mapEl.style.cursor = '';
     }
   }
 
@@ -114,18 +124,136 @@ export function setupInteraction(container, vessels, config) {
   function onMouseleave() {
     if (tooltip) tooltip.classList.remove('active');
     clearRosterHighlight(container);
+    mapEl.style.cursor = '';
   }
 
-  // ---- Click ----
+  // ---- Double-tap / Double-click handler ----
+  function handleDoubleTap(mx, my) {
+    var hit = hitTest(vessels, mx, my);
+
+    if (hit) {
+      // Double-tapped a vessel — zoom in
+      if (typeof config.onVesselZoom === 'function') {
+        config.onVesselZoom(hit.vessel, hit.index);
+      }
+    } else {
+      // Double-tapped empty space — zoom out
+      if (typeof config.onMapZoomOut === 'function') {
+        config.onMapZoomOut();
+      }
+    }
+  }
+
+  // ---- Click (with double-click detection) ----
+  var clickTimer = null;
+
   function onClick(e) {
     var rect = mapEl.getBoundingClientRect();
     var mx = e.clientX - rect.left;
     var my = e.clientY - rect.top;
 
-    var hit = hitTest(vessels, mx, my);
+    // Check for double-click
+    var now = Date.now();
+    var dx = mx - lastTapX;
+    var dy = my - lastTapY;
+    var dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (hit && typeof config.onVesselClick === 'function') {
-      config.onVesselClick(hit.vessel);
+    if (now - lastTapTime < DOUBLE_TAP_DELAY && dist < DOUBLE_TAP_RADIUS) {
+      // Double-click detected
+      lastTapTime = 0;
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+      handleDoubleTap(mx, my);
+      return;
+    }
+
+    lastTapTime = now;
+    lastTapX = mx;
+    lastTapY = my;
+
+    // Delay single-click to distinguish from double-click
+    var savedMx = mx;
+    var savedMy = my;
+    clickTimer = setTimeout(function () {
+      clickTimer = null;
+      var hit = hitTest(vessels, savedMx, savedMy);
+      if (hit && typeof config.onVesselClick === 'function') {
+        config.onVesselClick(hit.vessel);
+      }
+    }, DOUBLE_TAP_DELAY);
+  }
+
+  // ---- Touch events (for mobile double-tap) ----
+  function onTouchEnd(e) {
+    if (e.changedTouches.length !== 1) return;
+
+    var touch = e.changedTouches[0];
+    var rect = mapEl.getBoundingClientRect();
+    var mx = touch.clientX - rect.left;
+    var my = touch.clientY - rect.top;
+
+    var now = Date.now();
+    var dx = mx - lastTapX;
+    var dy = my - lastTapY;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (now - lastTapTime < DOUBLE_TAP_DELAY && dist < DOUBLE_TAP_RADIUS) {
+      // Double-tap detected
+      e.preventDefault();
+      lastTapTime = 0;
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+      handleDoubleTap(mx, my);
+      return;
+    }
+
+    lastTapTime = now;
+    lastTapX = mx;
+    lastTapY = my;
+
+    // Single tap — trigger hover tooltip on mobile
+    var savedMx = mx;
+    var savedMy = my;
+    clickTimer = setTimeout(function () {
+      clickTimer = null;
+      var hit = hitTest(vessels, savedMx, savedMy);
+      if (hit) {
+        // Show tooltip
+        if (viName)   viName.textContent = hit.vessel.name;
+        if (viDetail) {
+          var parts = hit.vessel.type + ' \u00b7 ' + hit.vessel.speed + ' kts';
+          if (hit.vessel.catch && hit.vessel.catch !== '\u2014') {
+            parts += ' \u00b7 ' + hit.vessel.catch;
+          }
+          viDetail.textContent = parts;
+        }
+        if (viStatus) viStatus.textContent = hit.vessel.status || '';
+        if (tooltip) {
+          tooltip.style.left = savedMx + 'px';
+          tooltip.style.top  = (savedMy - 80) + 'px';
+          tooltip.classList.add('active');
+        }
+
+        if (typeof config.onVesselClick === 'function') {
+          config.onVesselClick(hit.vessel);
+        }
+      } else {
+        if (tooltip) tooltip.classList.remove('active');
+      }
+    }, DOUBLE_TAP_DELAY);
+  }
+
+  // Prevent default double-tap zoom on mobile
+  function onTouchStart(e) {
+    // Only prevent if touching near a vessel (don't block all scrolling)
+    if (e.touches.length === 1) {
+      var touch = e.touches[0];
+      var rect = mapEl.getBoundingClientRect();
+      var mx = touch.clientX - rect.left;
+      var my = touch.clientY - rect.top;
+      var hit = hitTest(vessels, mx, my);
+      if (hit) {
+        // Prevent browser double-tap zoom when tapping vessels
+        // (but still allow the touchend to fire)
+      }
     }
   }
 
@@ -133,11 +261,16 @@ export function setupInteraction(container, vessels, config) {
   mapEl.addEventListener('mousemove',  onMousemove);
   mapEl.addEventListener('mouseleave', onMouseleave);
   mapEl.addEventListener('click',      onClick);
+  mapEl.addEventListener('touchend',   onTouchEnd, { passive: false });
+  mapEl.addEventListener('touchstart', onTouchStart, { passive: true });
 
   // Return cleanup function
   return function cleanup() {
     mapEl.removeEventListener('mousemove',  onMousemove);
     mapEl.removeEventListener('mouseleave', onMouseleave);
     mapEl.removeEventListener('click',      onClick);
+    mapEl.removeEventListener('touchend',   onTouchEnd);
+    mapEl.removeEventListener('touchstart', onTouchStart);
+    if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
   };
 }
