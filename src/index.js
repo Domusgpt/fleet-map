@@ -151,7 +151,7 @@ export class FleetMap {
     this.rosterEl = buildRoster(rosterScope, this.vessels, this.config);
 
     // Setup mouse/touch interaction
-    this._interactionCleanup = setupInteraction(this.cm, this.vessels, this.config);
+    this._interactionCleanup = setupInteraction(this.container, this.vessels, this.config);
 
     // AIS live-tracking client
     this.aisClient = null;
