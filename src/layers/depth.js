@@ -196,7 +196,7 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
 
     // Brightness decreases with depth
     var brightMul = 1.0 - zFrac * 0.6;
-    var zoneAlpha = 0.03 * brightMul;
+    var zoneAlpha = 0.12 * brightMul;
 
     // For NJ, coast is on the left (west); for Brazil, coast is on the right (east)
     var zoneGrad;
@@ -213,9 +213,9 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
     }
 
     // Lighter water color for shallow zones
-    var zr = Math.min(255, deep.r + Math.round(40 * brightMul));
-    var zg = Math.min(255, deep.g + Math.round(60 * brightMul));
-    var zb = Math.min(255, deep.b + Math.round(80 * brightMul));
+    var zr = Math.min(255, deep.r + Math.round(60 * brightMul));
+    var zg = Math.min(255, deep.g + Math.round(90 * brightMul));
+    var zb = Math.min(255, deep.b + Math.round(120 * brightMul));
 
     zoneGrad.addColorStop(0.0, 'rgba(' + zr + ',' + zg + ',' + zb + ',' + zoneAlpha + ')');
     zoneGrad.addColorStop(1.0, 'rgba(' + zr + ',' + zg + ',' + zb + ',0)');
@@ -239,14 +239,14 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
       var combined = (nVal + nVal2) * 0.5;
 
       // Only draw bright spots (caustic peaks)
-      if (combined > 0.55) {
-        var intensity = (combined - 0.55) / 0.45;
-        var alpha = intensity * 0.025;
+      if (combined > 0.5) {
+        var intensity = (combined - 0.5) / 0.5;
+        var alpha = intensity * 0.09;
 
         ctx.fillStyle = 'rgba(' +
-          Math.min(255, deep.r + 80) + ',' +
-          Math.min(255, deep.g + 100) + ',' +
-          Math.min(255, deep.b + 120) + ',' +
+          Math.min(255, deep.r + 100) + ',' +
+          Math.min(255, deep.g + 140) + ',' +
+          Math.min(255, deep.b + 180) + ',' +
           alpha + ')';
         ctx.fillRect(
           cx2 * cellW,
@@ -261,20 +261,20 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
   // ------------------------------------------------------------------
   // 5. Depth shimmer highlights — larger gentle light bands
   // ------------------------------------------------------------------
-  for (var si = 0; si < 6; si++) {
-    var shimX = w * (0.1 + noise2d(si * 3.7, 1.2) * 0.8);
-    var shimY = h * (0.1 + noise2d(1.2, si * 3.7) * 0.8);
-    var shimR = Math.min(w, h) * (0.08 + noise2d(si, si) * 0.12);
+  for (var si = 0; si < 10; si++) {
+    var shimX = w * (0.05 + noise2d(si * 3.7, 1.2) * 0.9);
+    var shimY = h * (0.05 + noise2d(1.2, si * 3.7) * 0.9);
+    var shimR = Math.min(w, h) * (0.1 + noise2d(si, si) * 0.18);
 
     var shimGrad = ctx.createRadialGradient(shimX, shimY, 0, shimX, shimY, shimR);
     shimGrad.addColorStop(0.0, 'rgba(' +
-      Math.min(255, deep.r + 50) + ',' +
-      Math.min(255, deep.g + 70) + ',' +
-      Math.min(255, deep.b + 90) + ',0.04)');
+      Math.min(255, deep.r + 70) + ',' +
+      Math.min(255, deep.g + 100) + ',' +
+      Math.min(255, deep.b + 130) + ',0.12)');
     shimGrad.addColorStop(1.0, 'rgba(' +
-      Math.min(255, deep.r + 50) + ',' +
-      Math.min(255, deep.g + 70) + ',' +
-      Math.min(255, deep.b + 90) + ',0)');
+      Math.min(255, deep.r + 70) + ',' +
+      Math.min(255, deep.g + 100) + ',' +
+      Math.min(255, deep.b + 130) + ',0)');
 
     ctx.fillStyle = shimGrad;
     ctx.fillRect(0, 0, w, h);
@@ -380,8 +380,8 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
     ctx.lineTo(gLastP.x, gLastP.y);
 
     // Glow stroke
-    ctx.strokeStyle = 'rgba(' + fathomRGB.r + ',' + fathomRGB.g + ',' + fathomRGB.b + ',0.06)';
-    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(' + fathomRGB.r + ',' + fathomRGB.g + ',' + fathomRGB.b + ',0.18)';
+    ctx.lineWidth = 8;
     ctx.stroke();
 
     // Crisp contour line
@@ -418,11 +418,11 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
     ctx.lineTo(lastP.x, lastP.y);
 
     // Vary line opacity by depth
-    var contourAlpha = 0.15 - c * 0.03;
-    if (contourAlpha < 0.04) contourAlpha = 0.04;
+    var contourAlpha = 0.4 - c * 0.08;
+    if (contourAlpha < 0.12) contourAlpha = 0.12;
     ctx.strokeStyle = 'rgba(' + fathomRGB.r + ',' + fathomRGB.g + ',' + fathomRGB.b + ',' + contourAlpha + ')';
-    ctx.lineWidth = 1.2 - c * 0.15;
-    if (ctx.lineWidth < 0.5) ctx.lineWidth = 0.5;
+    ctx.lineWidth = 1.8 - c * 0.2;
+    if (ctx.lineWidth < 0.8) ctx.lineWidth = 0.8;
     ctx.stroke();
   }
 
@@ -469,12 +469,12 @@ export function drawDepth(ctx, cmOrW, configOrH, projFnArg, configArg, tArg) {
 
     // Small dot
     ctx.beginPath();
-    ctx.arc(sdP.x, sdP.y, 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(' + fathomRGB.r + ',' + fathomRGB.g + ',' + fathomRGB.b + ',0.12)';
+    ctx.arc(sdP.x, sdP.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(' + fathomRGB.r + ',' + fathomRGB.g + ',' + fathomRGB.b + ',0.3)';
     ctx.fill();
 
     // Depth number
-    ctx.fillStyle = 'rgba(' + fathomRGB.r + ',' + fathomRGB.g + ',' + fathomRGB.b + ',0.08)';
+    ctx.fillStyle = 'rgba(' + fathomRGB.r + ',' + fathomRGB.g + ',' + fathomRGB.b + ',0.25)';
     ctx.fillText(depthVal + '', sdP.x, sdP.y - 6);
   }
 }
