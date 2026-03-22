@@ -121,12 +121,27 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
   ctx.fill();
 
   // ------------------------------------------------------------------
-  // 2. Coast outline — double stroke (glow + crisp line)
+  // 2. Coast outline — triple stroke (shallow water + glow + crisp line)
   // ------------------------------------------------------------------
+  // Shallow water glow — wide soft band suggesting nearshore shallows
+  traceCoast(ctx, coastData, projFn);
+  ctx.strokeStyle = colors.coastGlow;
+  ctx.lineWidth   = 28;
+  ctx.globalAlpha = 0.3;
+  ctx.stroke();
+
+  // Mid glow
+  traceCoast(ctx, coastData, projFn);
+  ctx.strokeStyle = colors.coastGlow;
+  ctx.lineWidth   = 14;
+  ctx.globalAlpha = 0.5;
+  ctx.stroke();
+
   // Outer glow
   traceCoast(ctx, coastData, projFn);
   ctx.strokeStyle = colors.coastGlow;
   ctx.lineWidth   = 10;
+  ctx.globalAlpha = 1;
   ctx.stroke();
 
   // Crisp line

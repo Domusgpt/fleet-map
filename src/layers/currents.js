@@ -230,17 +230,31 @@ export function drawCurrents(ctx, wOrCm, hOrParticles, projFnOrCurrentData, conf
       continue;
     }
 
-    // Draw particle as short trailing line
+    // Draw particle as short trailing line with subtle glow
     if (alpha < 0.01) continue;
 
     var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-    var lw    = 0.5 + Math.min(speed * 0.3, 0.5);
+    var lw    = 0.5 + Math.min(speed * 0.4, 0.8);
+    var tailX = p.x - p.vx * 3.5;
+    var tailY = p.y - p.vy * 3.5;
 
+    // Subtle glow for faster-moving particles
+    if (speed > 0.8) {
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(tailX, tailY);
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha * 0.12;
+      ctx.lineWidth   = lw + 2;
+      ctx.stroke();
+    }
+
+    // Main particle line
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
-    ctx.lineTo(p.x - p.vx * 3, p.y - p.vy * 3);
+    ctx.lineTo(tailX, tailY);
     ctx.strokeStyle = color;
-    ctx.globalAlpha = alpha * 0.45;
+    ctx.globalAlpha = alpha * 0.5;
     ctx.lineWidth   = lw;
     ctx.stroke();
   }
