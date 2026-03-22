@@ -30,10 +30,10 @@ export var DEFAULTS = {
     creme:     'rgba(240,235,224,1)',
     land:      ['rgba(0,42,31,0.6)', 'rgba(0,59,46,0.5)', 'rgba(0,42,31,0.4)'],
     ocean:     ['rgba(13,34,64,0.35)', 'rgba(10,28,50,0.2)', 'rgba(4,10,16,0.05)'],
-    fathom:    'rgba(27,58,92,0.12)',
-    grid:      'rgba(201,168,76,0.04)',
-    coastGlow: 'rgba(201,168,76,0.08)',
-    coastLine: 'rgba(201,168,76,0.35)',
+    fathom:    'rgba(27,58,92,0.25)',
+    grid:      'rgba(201,168,76,0.08)',
+    coastGlow: 'rgba(201,168,76,0.15)',
+    coastLine: 'rgba(201,168,76,0.45)',
   },
 
   // Fonts (must be loaded by the host page)

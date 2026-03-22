@@ -146,16 +146,16 @@ export function drawAtmosphere(ctx, wOrCm, hOrConfig, config) {
 
     var shaftGrad = ctx.createLinearGradient(0, 0, 0, h * 0.7);
     shaftGrad.addColorStop(0.0, rgba(
-      Math.min(255, r + 60),
-      Math.min(255, g + 80),
-      Math.min(255, b + 100),
-      0.015
+      Math.min(255, r + 80),
+      Math.min(255, g + 110),
+      Math.min(255, b + 140),
+      0.06
     ));
-    shaftGrad.addColorStop(0.5, rgba(
-      Math.min(255, r + 40),
-      Math.min(255, g + 60),
-      Math.min(255, b + 80),
-      0.008
+    shaftGrad.addColorStop(0.4, rgba(
+      Math.min(255, r + 50),
+      Math.min(255, g + 80),
+      Math.min(255, b + 110),
+      0.035
     ));
     shaftGrad.addColorStop(1.0, rgba(r, g, b, 0));
 
@@ -167,21 +167,21 @@ export function drawAtmosphere(ctx, wOrCm, hOrConfig, config) {
   // ------------------------------------------------------------------
   // 7. Thin decorative border — nautical chart edge
   // ------------------------------------------------------------------
-  ctx.strokeStyle = rgba(ouro.r, ouro.g, ouro.b, 0.08);
+  ctx.strokeStyle = rgba(ouro.r, ouro.g, ouro.b, 0.18);
   ctx.lineWidth = 1;
 
   // Outer border
   ctx.strokeRect(4, 4, w - 8, h - 8);
 
   // Inner border (double-line effect)
-  ctx.strokeStyle = rgba(ouro.r, ouro.g, ouro.b, 0.04);
+  ctx.strokeStyle = rgba(ouro.r, ouro.g, ouro.b, 0.08);
   ctx.lineWidth = 0.5;
   ctx.strokeRect(8, 8, w - 16, h - 16);
 
   // Corner tick marks
-  var tickLen = 12;
-  ctx.strokeStyle = rgba(ouro.r, ouro.g, ouro.b, 0.1);
-  ctx.lineWidth = 1;
+  var tickLen = 16;
+  ctx.strokeStyle = rgba(ouro.r, ouro.g, ouro.b, 0.25);
+  ctx.lineWidth = 1.5;
 
   // Top-left corner
   ctx.beginPath();

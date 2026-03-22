@@ -102,7 +102,8 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
     var haloRadius = glowRadius + Math.sin(t * 1.5 + i) * 6;
 
     var haloGrad = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, haloRadius);
-    haloGrad.addColorStop(0, colors.ouro.replace(/[\d.]+\)$/, '0.08)'));
+    haloGrad.addColorStop(0, colors.ouro.replace(/[\d.]+\)$/, '0.18)'));
+    haloGrad.addColorStop(0.5, colors.ouro.replace(/[\d.]+\)$/, '0.06)'));
     haloGrad.addColorStop(1, colors.ouro.replace(/[\d.]+\)$/, '0)'));
 
     ctx.fillStyle = haloGrad;
@@ -120,22 +121,23 @@ export function drawVessels(ctx, cmOrW, vesselsOrH, config, t, renderer) {
     v = vessels[i];
     if (!v.trail || v.trail.length < 2) continue;
 
-    ctx.beginPath();
-    var tp0 = v.trail[0];
-    ctx.moveTo(tp0.x, tp0.y);
-
     if (trailStyle === 'dotted') {
       ctx.setLineDash([2, 4]);
     }
 
-    for (var ti = 1; ti < v.trail.length; ti++) {
-      ctx.lineTo(v.trail[ti].x, v.trail[ti].y);
-    }
+    // Draw trail segments with fading opacity (newest = bright, oldest = dim)
+    var trailLen = v.trail.length;
+    for (var ti = 1; ti < trailLen; ti++) {
+      var segAlpha = 0.35 * (ti / trailLen);
+      var segWidth = 0.5 + 1.5 * (ti / trailLen);
 
-    ctx.strokeStyle = colors.ouro.replace(/[\d.]+\)$/, '0.25)');
-    ctx.lineWidth   = 1.5;
-    ctx.globalAlpha = 1;
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(v.trail[ti - 1].x, v.trail[ti - 1].y);
+      ctx.lineTo(v.trail[ti].x, v.trail[ti].y);
+      ctx.strokeStyle = statusColor(colors, v.status, segAlpha);
+      ctx.lineWidth   = segWidth;
+      ctx.stroke();
+    }
 
     if (trailStyle === 'dotted') {
       ctx.setLineDash([]);
@@ -248,7 +250,7 @@ function drawCompassRose(ctx, w, h, config, t) {
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(wobble);
-  ctx.globalAlpha = 0.35;
+  ctx.globalAlpha = 0.5;
 
   // Outer circle
   ctx.beginPath();
@@ -274,7 +276,7 @@ function drawCompassRose(ctx, w, h, config, t) {
   }
 
   // 8-point star
-  ctx.globalAlpha = 0.25;
+  ctx.globalAlpha = 0.4;
   for (var pt = 0; pt < 8; pt++) {
     var angle   = pt * (TAU / 8) - Math.PI / 2; // start from north
     var isMain  = (pt % 2 === 0);
@@ -300,12 +302,12 @@ function drawCompassRose(ctx, w, h, config, t) {
     ctx.closePath();
 
     ctx.fillStyle = isMain ? colors.ouro : colors.creme;
-    ctx.globalAlpha = isMain ? 0.3 : 0.15;
+    ctx.globalAlpha = isMain ? 0.45 : 0.25;
     ctx.fill();
   }
 
   // Cardinal letters N, S, E, W
-  ctx.globalAlpha = 0.4;
+  ctx.globalAlpha = 0.6;
   var letterR     = tickR + 8;
   var letterSize  = Math.max(8, Math.round(w * 0.008));
   ctx.font         = letterSize + 'px ' + fonts.sans;

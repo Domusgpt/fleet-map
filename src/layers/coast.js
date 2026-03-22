@@ -126,14 +126,14 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
   // Shallow water glow — wide soft band suggesting nearshore shallows
   traceCoast(ctx, coastData, projFn);
   ctx.strokeStyle = colors.coastGlow;
-  ctx.lineWidth   = 28;
-  ctx.globalAlpha = 0.3;
+  ctx.lineWidth   = 40;
+  ctx.globalAlpha = 0.25;
   ctx.stroke();
 
   // Mid glow
   traceCoast(ctx, coastData, projFn);
   ctx.strokeStyle = colors.coastGlow;
-  ctx.lineWidth   = 14;
+  ctx.lineWidth   = 20;
   ctx.globalAlpha = 0.5;
   ctx.stroke();
 
@@ -141,13 +141,13 @@ export function drawCoast(ctx, cmOrW, coastDataOrH, portsOrProjFn, routesOrConfi
   traceCoast(ctx, coastData, projFn);
   ctx.strokeStyle = colors.coastGlow;
   ctx.lineWidth   = 10;
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.8;
   ctx.stroke();
 
   // Crisp line
   traceCoast(ctx, coastData, projFn);
   ctx.strokeStyle = colors.coastLine;
-  ctx.lineWidth   = 2;
+  ctx.lineWidth   = 2.5;
   ctx.stroke();
 
   // ------------------------------------------------------------------
